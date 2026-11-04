@@ -35,8 +35,7 @@ jobs:
         env:
           NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GROK_API_KEY: ${{ secrets.GROK_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
-          GROK_MODEL: ${{ vars.GROK_MODEL }}
+          GEMINI_FALLBACK_MODELS: ${{ vars.GEMINI_FALLBACK_MODELS }}
           NEWS_SOURCES_JSON: ${{ vars.NEWS_SOURCES_JSON }}
         run: python -m smart_agent.worker
