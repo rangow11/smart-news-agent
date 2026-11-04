@@ -107,8 +107,7 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
     endpoint = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
         + quote(model, safe="")
-        + ":generateContent?key="
-        + quote(key, safe="")
+        + ":generateContent"
     )
     body = json.dumps(
         {
@@ -116,7 +115,7 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
             "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
         }
     ).encode()
-    req = Request(endpoint, data=body, headers={"Content-Type": "application/json"}, method="POST")
+    req = Request(endpoint, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key}, method="POST")
     with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
     text = payload["candidates"][0]["content"]["parts"][0]["text"]
@@ -272,7 +271,9 @@ def main() -> int:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
     database_url = os.environ["NEON_DATABASE_URL"]
     with psycopg.connect(database_url, row_factory=dict_row, connect_timeout=15) as conn:
-        conn.execute(SCHEMA)
+        for statement in SCHEMA.split(";"):
+            if statement.strip():
+                conn.execute(statement)
         conn.commit()
         configure_sources(conn)
         sources = conn.execute(
