@@ -210,7 +210,7 @@ def process_feed(conn, source: dict) -> int:
                         (source_id, source_name, title, url, canonical_url, published_at, content,
                          category, summary, importance, mission_relevance, freshness, source_quality,
                          total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
-                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s)
+                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
                         ON CONFLICT DO NOTHING RETURNING id""",
                         (
                             source["id"],
