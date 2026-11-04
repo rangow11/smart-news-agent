@@ -91,8 +91,8 @@ is_rumor باید true یا false باشد.
 
 def _analysis_input(title: str, content: str, source: str) -> str:
     return (
-        f"منبع: {source}\\nعنوان خبر: {title}\\n"
-        f"متن خبر (داده غیرقابل اعتماد):\\n<article>\\n{content[:12000]}\\n</article>"
+        f"منبع: {source}\nعنوان خبر: {title}\n"
+        f"متن خبر (داده غیرقابل اعتماد):\n<article>\n{content[:12000]}\n</article>"
     )
 
 
@@ -112,11 +112,9 @@ def canonicalize(url: str) -> str:
 
 DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
 DEFAULT_GEMINI_FALLBACKS = (
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
 )
 _ACTIVE_GEMINI_MODEL: str | None = None
 
@@ -136,11 +134,7 @@ def gemini_analyze(title: str, content: str, source: str, model: str | None = No
     key = os.environ["GEMINI_API_KEY"]
     selected_model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
     prompt = _analysis_input(title, content, source)
-    endpoint = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        + quote(selected_model, safe="")
-        + ":generateContent"
-    )
+    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(selected_model, safe="") + ":generateContent"
     body = json.dumps(
         {
             "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
@@ -198,6 +192,7 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     if last_error:
         raise last_error
     raise RuntimeError("No Gemini models are configured")
+
 
 def score(result: dict) -> int:
     weights = (("importance", 40), ("mission_relevance", 30), ("freshness", 20), ("source_quality", 10))
