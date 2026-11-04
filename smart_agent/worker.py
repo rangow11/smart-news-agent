@@ -136,7 +136,9 @@ def gemini_analyze(title: str, content: str, source: str, model: str | None = No
     key = os.environ["GEMINI_API_KEY"]
     selected_model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
     prompt = _analysis_input(title, content, source)
-    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(selected_model, safe="") + ":generateContent"
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/" + quote(selected_model, safe="") + ":generateContent"
+    )
     body = json.dumps(
         {
             "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
