@@ -42,9 +42,7 @@ def test_grok_fallback_on_rate_limit() -> None:
 
 
 def test_grok_fallback_on_google_quota_forbidden_response() -> None:
-    error = HTTPError(
-        "https://example.com", 403, "quota", {}, BytesIO(b'{"error":"RESOURCE_EXHAUSTED: quota"}')
-    )
+    error = HTTPError("https://example.com", 403, "quota", {}, BytesIO(b'{"error":"RESOURCE_EXHAUSTED: quota"}'))
     assert _should_use_grok(error)
 
 
