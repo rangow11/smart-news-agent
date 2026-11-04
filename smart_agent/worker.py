@@ -261,7 +261,7 @@ def process_feed(conn, source: dict) -> int:
                 continue
         except Exception:
             LOG.exception("Could not check duplicate status for %s", url)
-            continue
+            raise
         content = (entry.get("summary") or entry.get("description") or "").strip()
         content = re.sub(r"<[^>]+>", " ", content)
         content = re.sub(r"\s+", " ", content)[:12000]
