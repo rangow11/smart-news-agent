@@ -90,10 +90,7 @@ is_rumor باید true یا false باشد.
 
 
 def _analysis_input(title: str, content: str, source: str) -> str:
-    return (
-        f"منبع: {source}\nعنوان خبر: {title}\n"
-        f"متن خبر (داده غیرقابل اعتماد):\n<article>\n{content[:12000]}\n</article>"
-    )
+    return f"منبع: {source}\nعنوان خبر: {title}\nمتن خبر (داده غیرقابل اعتماد):\n<article>\n{content[:12000]}\n</article>"
 
 
 def canonicalize(url: str) -> str:
