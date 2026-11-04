@@ -104,18 +104,16 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
     key = os.environ["GEMINI_API_KEY"]
     model = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
     prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
-    endpoint = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        + quote(model, safe="")
-        + ":generateContent"
-    )
+    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(model, safe="") + ":generateContent"
     body = json.dumps(
         {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
         }
     ).encode()
-    req = Request(endpoint, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key}, method="POST")
+    req = Request(
+        endpoint, data=body, headers={"Content-Type": "application/json", "x-goog-api-key": key}, method="POST"
+    )
     with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
     text = payload["candidates"][0]["content"]["parts"][0]["text"]
