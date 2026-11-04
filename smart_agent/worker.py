@@ -17,8 +17,6 @@ from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 import feedparser
-import psycopg
-from psycopg.rows import dict_row
 
 LOG = logging.getLogger("smart_news_worker")
 SCHEMA = """
@@ -218,6 +216,9 @@ def configure_sources(conn) -> None:
 
 
 def main() -> int:
+    import psycopg
+    from psycopg.rows import dict_row
+
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
     database_url = os.environ["NEON_DATABASE_URL"]
     with psycopg.connect(database_url, row_factory=dict_row, connect_timeout=15) as conn:
