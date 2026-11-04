@@ -4,6 +4,7 @@ The legacy Topic Watch application remains untouched. This worker is the first
 deployable slice: RSS ingestion, deterministic URL deduplication, Gemini-first
 classification/scoring, and Grok fallback on Gemini quota/rate-limit failures.
 """
+
 from __future__ import annotations
 
 import json
@@ -59,9 +60,16 @@ CREATE INDEX IF NOT EXISTS idx_news_reports_published
 """
 
 CATEGORIES = [
-    "شایعات", "نقاط قوت و ضعف", "تهدیدات و فرصت‌ها", "مشکلات و صدمات",
-    "وضعیت نیروها و رقیب", "سازمان‌های موازی", "غیبت و فرار",
-    "خدمات شهری", "وضعیت روحیه", "سایر و پیشنهادات",
+    "شایعات",
+    "نقاط قوت و ضعف",
+    "تهدیدات و فرصت‌ها",
+    "مشکلات و صدمات",
+    "وضعیت نیروها و رقیب",
+    "سازمان‌های موازی",
+    "غیبت و فرار",
+    "خدمات شهری",
+    "وضعیت روحیه",
+    "سایر و پیشنهادات",
 ]
 SYSTEM_PROMPT = (
     """تو دستیار غربالگری اخبار هستی. فقط بر اساس متن ورودی کار کن.
