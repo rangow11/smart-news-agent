@@ -170,6 +170,7 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
         LOG.warning("Gemini unavailable (%s); switching to Grok fallback", type(exc).__name__)
         return grok_analyze(title, content, source)
 
+
 def score(result: dict) -> int:
     weights = (("importance", 40), ("mission_relevance", 30), ("freshness", 20), ("source_quality", 10))
     return round(sum(max(0, min(100, int(result.get(key, 0)))) * weight / 100 for key, weight in weights))
