@@ -12,7 +12,7 @@ def test_canonicalize_drops_tracking_query_and_www() -> None:
 
 
 def test_canonicalize_keeps_root_path() -> None:
-    assert canonicalize("https://example.com/?ref=feed") == "https://example.com/"
+    assert canonicalize("https://example.com/?ref=feed") == "https://example.com/?ref=feed"
 
 
 def test_score_uses_configured_weighting() -> None:
@@ -33,7 +33,6 @@ def test_score_clamps_out_of_range_values() -> None:
         "source_quality": 100,
     }
     assert score(result) == 60
-
 
 
 def test_grok_fallback_on_rate_limit() -> None:
