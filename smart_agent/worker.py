@@ -110,11 +110,33 @@ def canonicalize(url: str) -> str:
     return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
-def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
+DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
+DEFAULT_GEMINI_FALLBACKS = (
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-2.5-flash",
+)
+_ACTIVE_GEMINI_MODEL: str | None = None
+
+
+def _gemini_model_chain() -> list[str]:
+    primary = os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
+    configured = os.getenv("GEMINI_FALLBACK_MODELS", "").strip()
+    fallbacks = (
+        [item.strip() for item in configured.split(",") if item.strip()]
+        if configured
+        else list(DEFAULT_GEMINI_FALLBACKS)
+    )
+    return list(dict.fromkeys([primary, *fallbacks]))
+
+
+def gemini_analyze(title: str, content: str, source: str, model: str | None = None) -> tuple[dict, str, str]:
     key = os.environ["GEMINI_API_KEY"]
-    model = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
+    selected_model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
     prompt = _analysis_input(title, content, source)
-    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(model, safe="") + ":generateContent"
+    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(selected_model, safe="") + ":generateContent"
     body = json.dumps(
         {
             "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
@@ -128,45 +150,18 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
     with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
     text = payload["candidates"][0]["content"]["parts"][0]["text"]
-    return json.loads(text), "gemini", model
+    return json.loads(text), "gemini", selected_model
 
 
-def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
-    key = os.environ["GROK_API_KEY"]
-    model = os.getenv("GROK_MODEL") or "grok-4.7"
-    prompt = _analysis_input(title, content, source)
-    body = json.dumps(
-        {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.1,
-        }
-    ).encode()
-    req = Request(
-        "https://api.x.ai/v1/chat/completions",
-        data=body,
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    with urlopen(req, timeout=90) as response:  # noqa: S310
-        payload = json.loads(response.read())
-    return json.loads(payload["choices"][0]["message"]["content"]), "grok", model
-
-
-def _should_use_grok(exc: Exception) -> bool:
-    """Fallback only for quota exhaustion or transient Gemini availability errors."""
-    if isinstance(exc, (URLError, TimeoutError)):
+def _should_try_next_gemini(exc: Exception) -> bool:
+    """Switch models only for quota/rate limits, transient outages, or unusable model output."""
+    if isinstance(exc, (URLError, TimeoutError, ValueError, KeyError)):
         return True
     if not isinstance(exc, HTTPError):
         return False
     if exc.code in (429, 500, 502, 503, 504):
         return True
     if exc.code == 403:
-        # A 403 is a quota issue only when Google's response says so.
         try:
             detail = exc.read(4000).decode("utf-8", errors="replace").lower()
         except Exception:
@@ -176,14 +171,27 @@ def _should_use_grok(exc: Exception) -> bool:
 
 
 def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
-    try:
-        return gemini_analyze(title, content, source)
-    except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
-        if not _should_use_grok(exc):
-            raise
-        LOG.warning("Gemini unavailable (%s); switching to Grok fallback", type(exc).__name__)
-        return grok_analyze(title, content, source)
-
+    """Try Gemini models in order and keep the working fallback for this run."""
+    global _ACTIVE_GEMINI_MODEL
+    chain = _gemini_model_chain()
+    if _ACTIVE_GEMINI_MODEL in chain:
+        chain = [_ACTIVE_GEMINI_MODEL, *[model for model in chain if model != _ACTIVE_GEMINI_MODEL]]
+    last_error: Exception | None = None
+    for index, model in enumerate(chain):
+        try:
+            result = gemini_analyze(title, content, source, model=model)
+            _ACTIVE_GEMINI_MODEL = model
+            if index:
+                LOG.warning("Gemini fallback model selected for this run: %s", model)
+            return result
+        except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
+            last_error = exc
+            if not _should_try_next_gemini(exc) or index == len(chain) - 1:
+                raise
+            LOG.warning("Gemini model %s unavailable (%s); trying next Gemini model", model, type(exc).__name__)
+    if last_error:
+        raise last_error
+    raise RuntimeError("No Gemini models are configured")
 
 def score(result: dict) -> int:
     weights = (("importance", 40), ("mission_relevance", 30), ("freshness", 20), ("source_quality", 10))
