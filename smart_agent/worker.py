@@ -136,7 +136,9 @@ def _gemini_model_chain() -> list[str]:
 
 
 def gemini_analyze(title: str, content: str, source: str, model: str | None = None) -> tuple[dict, str, str]:
-    key = os.environ["GEMINI_API_KEY"]
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise RuntimeError("GEMINI_API_KEY is not configured")
     selected_model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
     prompt = _analysis_input(title, content, source)
     endpoint = (
@@ -236,8 +238,7 @@ def report_exists(conn, url: str, canonical_url: str) -> bool:
 def process_feed(conn, source: dict) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries:
-        LOG.warning("RSS parse failed for %s: %s", source["name"], parsed.bozo_exception)
-        return 0
+        raise RuntimeError(f"RSS parse failed for {source['name']}: {parsed.bozo_exception}")
     inserted = 0
     for entry in parsed.entries[:100]:
         title = (entry.get("title") or "").strip()
@@ -309,6 +310,8 @@ def configure_sources(conn) -> None:
         raise ValueError("NEWS_SOURCES_JSON must be a JSON array") from exc
     if not isinstance(sources, list):
         raise ValueError("NEWS_SOURCES_JSON must be a JSON array")
+    if not sources:
+        raise ValueError("NEWS_SOURCES_JSON has no feeds configured")
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
@@ -340,14 +343,23 @@ def main() -> int:
             "SELECT id, name, feed_url, source_quality FROM news_sources WHERE enabled = TRUE ORDER BY id"
         ).fetchall()
         total = 0
+        failed_sources = 0
         for source in sources:
             try:
                 count = process_feed(conn, source)
                 LOG.info("%s: %d new reports", source["name"], count)
                 total += count
             except Exception:
+                failed_sources += 1
                 LOG.exception("Feed failed: %s", source["name"])
-        LOG.info("Run complete: %d new reports from %d sources", total, len(sources))
+        LOG.info(
+            "Run complete: %d new reports from %d sources (%d failed)",
+            total,
+            len(sources),
+            failed_sources,
+        )
+        if sources and failed_sources == len(sources):
+            raise RuntimeError("All configured RSS sources failed")
     return 0
 
 
