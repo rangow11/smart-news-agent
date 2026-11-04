@@ -3,7 +3,15 @@
 from io import BytesIO
 from urllib.error import HTTPError, URLError
 
-from smart_agent.worker import _should_use_grok, canonicalize, report_exists, score
+from smart_agent.worker import (
+    CATEGORIES,
+    _analysis_input,
+    _should_use_grok,
+    canonicalize,
+    report_exists,
+    score,
+    validate_analysis,
+)
 
 
 def test_canonicalize_drops_tracking_query_and_www() -> None:
@@ -87,3 +95,56 @@ def test_report_exists_checks_original_and_canonical_urls() -> None:
         "https://example.com/a?utm_source=x",
         "https://example.com/a",
     )
+
+
+
+def test_validate_analysis_accepts_valid_model_output() -> None:
+    result = {
+        "category": CATEGORIES[0],
+        "summary": "طبق گزارش منبع، این رویداد رخ داده است.",
+        "importance": 70,
+        "mission_relevance": 80,
+        "freshness": 90,
+        "is_rumor": True,
+    }
+    assert validate_analysis(result) == result
+
+
+def test_validate_analysis_rejects_unknown_category() -> None:
+    result = {
+        "category": "دسته ساختگی",
+        "summary": "خلاصه",
+        "importance": 70,
+        "mission_relevance": 80,
+        "freshness": 90,
+        "is_rumor": False,
+    }
+    try:
+        validate_analysis(result)
+    except ValueError as exc:
+        assert "unknown category" in str(exc)
+    else:
+        raise AssertionError("Unknown categories must not be stored")
+
+
+def test_validate_analysis_rejects_invalid_score_and_rumor_type() -> None:
+    result = {
+        "category": CATEGORIES[0],
+        "summary": "خلاصه",
+        "importance": 101,
+        "mission_relevance": 80,
+        "freshness": 90,
+        "is_rumor": "false",
+    }
+    try:
+        validate_analysis(result)
+    except ValueError as exc:
+        assert "importance" in str(exc)
+    else:
+        raise AssertionError("Out-of-range scores must not be stored")
+
+
+def test_analysis_input_labels_article_as_untrusted_data() -> None:
+    prompt = _analysis_input("عنوان", "متن خبر", "منبع")
+    assert "داده غیرقابل اعتماد" in prompt
+    assert "<article>" in prompt
