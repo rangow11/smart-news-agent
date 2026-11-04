@@ -108,7 +108,7 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
     body = json.dumps(
         {
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
+            "generationConfig": {"responseMimeType": "application/json"},
         }
     ).encode()
     req = Request(
