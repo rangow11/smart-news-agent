@@ -6,10 +6,15 @@ implemented yet) and lets an operator update the review status.
 
 ## Deploy
 
-1. Create a Cloudflare Worker project connected to this repository, with the
-   working directory set to `cloudflare`.
-2. Build/deploy with `npm install` and `npm run deploy`.
-3. Set Worker secrets:
+1. In GitHub repository settings, add Actions secrets `CLOUDFLARE_API_TOKEN`
+   and `CLOUDFLARE_ACCOUNT_ID`.
+2. In Cloudflare, create a Worker API token with permission to deploy Workers.
+3. Run **Actions → Deploy Smart News Dashboard → Run workflow** after the PR
+   is merged into `main`. The workflow installs dependencies and deploys the
+   Worker from the `cloudflare` directory.
+4. Alternatively, deploy manually from this directory with `npm install` and
+   `npm run deploy`.
+5. Set Worker secrets:
    - `DATABASE_URL`: the Neon connection string.
    - `DASHBOARD_ACCESS_TOKEN`: a long random token (at least 24 characters).
 4. Open the Worker URL. Enter the access token in the dashboard login panel.
