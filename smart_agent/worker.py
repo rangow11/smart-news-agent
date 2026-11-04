@@ -103,11 +103,12 @@ def canonicalize(url: str) -> str:
 def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     key = os.environ["GEMINI_API_KEY"]
     model = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
-    prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
+    prompt = _analysis_input(title, content, source)
     endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(model, safe="") + ":generateContent"
     body = json.dumps(
         {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"responseMimeType": "application/json"},
         }
     ).encode()
@@ -123,11 +124,14 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
 def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     key = os.environ["GROK_API_KEY"]
     model = os.getenv("GROK_MODEL") or "grok-4.7"
-    prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
+    prompt = _analysis_input(title, content, source)
     body = json.dumps(
         {
             "model": model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
             "response_format": {"type": "json_object"},
             "temperature": 0.1,
         }
@@ -176,6 +180,23 @@ def score(result: dict) -> int:
     return round(sum(max(0, min(100, int(result.get(key, 0)))) * weight / 100 for key, weight in weights))
 
 
+def validate_analysis(result: dict) -> dict:
+    """Reject malformed or out-of-taxonomy model output before it reaches storage."""
+    if not isinstance(result, dict):
+        raise ValueError("AI response must be a JSON object")
+    if result.get("category") not in CATEGORIES:
+        raise ValueError("AI response contains an unknown category")
+    if not isinstance(result.get("summary"), str) or not result["summary"].strip():
+        raise ValueError("AI response contains an empty or invalid summary")
+    for key in ("importance", "mission_relevance", "freshness"):
+        value = result.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 100:
+            raise ValueError(f"AI response field {key} must be an integer from 0 to 100")
+    if not isinstance(result.get("is_rumor"), bool):
+        raise ValueError("AI response field is_rumor must be a boolean")
+    return result
+
+
 def report_exists(conn, url: str, canonical_url: str) -> bool:
     """Avoid paying for another LLM call when this report is already stored."""
     with conn.cursor() as cur:
@@ -209,9 +230,7 @@ def process_feed(conn, source: dict) -> int:
         content = re.sub(r"\s+", " ", content)[:12000]
         try:
             result, provider, model = analyze(title, content, source["name"])
-            required = ("category", "summary", "importance", "mission_relevance", "freshness")
-            if any(key not in result for key in required):
-                raise ValueError("AI response is missing required classification/scoring fields")
+            result = validate_analysis(result)
             # Source reliability is operator-configured, never guessed by the LLM.
             result["source_quality"] = source["source_quality"]
             total = score(result)
