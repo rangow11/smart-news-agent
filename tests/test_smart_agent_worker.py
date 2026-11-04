@@ -8,6 +8,8 @@ from smart_agent.worker import (
     _analysis_input,
     _should_try_next_gemini,
     canonicalize,
+    configure_sources,
+    gemini_analyze,
     report_exists,
     score,
     validate_analysis,
@@ -168,3 +170,26 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     assert "<article>" in prompt
     assert "\n" in prompt
     assert "\\n" not in prompt
+
+def test_missing_gemini_key_fails_without_model_fallback(monkeypatch) -> None:
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    try:
+        gemini_analyze("title", "content", "source")
+    except RuntimeError as exc:
+        assert "GEMINI_API_KEY" in str(exc)
+    else:
+        raise AssertionError("Missing Gemini credentials must fail clearly")
+
+
+def test_empty_news_sources_configuration_is_rejected(monkeypatch) -> None:
+    class Connection:
+        def execute(self, *_args):
+            raise AssertionError("No database write should happen without sources")
+
+    monkeypatch.setenv("NEWS_SOURCES_JSON", "[]")
+    try:
+        configure_sources(Connection())
+    except ValueError as exc:
+        assert "no feeds configured" in str(exc)
+    else:
+        raise AssertionError("An empty feed list must not look like a successful run")
