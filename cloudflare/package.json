@@ -1,0 +1,13 @@
+{
+  "name": "smart-news-agent-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "wrangler": "^4.45.0"
+  }
+}
