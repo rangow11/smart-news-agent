@@ -4,7 +4,7 @@ from smart_agent.worker import canonicalize, score
 
 def test_canonicalize_drops_tracking_query_and_www() -> None:
     assert canonicalize("https://www.Example.com/news/story/?utm_source=x&id=2#top") == (
-        "https://example.com/news/story"
+        "https://example.com/news/story?id=2"
     )
 
 
