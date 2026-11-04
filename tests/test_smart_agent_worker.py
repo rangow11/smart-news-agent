@@ -3,7 +3,7 @@
 from io import BytesIO
 from urllib.error import HTTPError, URLError
 
-from smart_agent.worker import _should_use_grok, canonicalize, score
+from smart_agent.worker import _should_use_grok, canonicalize, report_exists, score
 
 
 def test_canonicalize_drops_tracking_query_and_www() -> None:
@@ -53,3 +53,38 @@ def test_no_grok_fallback_on_invalid_credentials() -> None:
 
 def test_grok_fallback_on_network_error() -> None:
     assert _should_use_grok(URLError("temporary network failure"))
+
+
+
+def test_report_exists_checks_original_and_canonical_urls() -> None:
+    class Cursor:
+        def __init__(self) -> None:
+            self.query = None
+            self.params = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+        def execute(self, query, params) -> None:
+            self.query = query
+            self.params = params
+
+        def fetchone(self):
+            return (1,)
+
+    class Connection:
+        def __init__(self) -> None:
+            self.cursor_instance = Cursor()
+
+        def cursor(self):
+            return self.cursor_instance
+
+    conn = Connection()
+    assert report_exists(conn, "https://example.com/a?utm_source=x", "https://example.com/a")
+    assert conn.cursor_instance.params == (
+        "https://example.com/a?utm_source=x",
+        "https://example.com/a",
+    )
