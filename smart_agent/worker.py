@@ -124,18 +124,32 @@ def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]
     return json.loads(payload["choices"][0]["message"]["content"]), "grok", model
 
 
+def _should_use_grok(exc: Exception) -> bool:
+    """Fallback only for quota exhaustion or transient Gemini availability errors."""
+    if isinstance(exc, (URLError, TimeoutError)):
+        return True
+    if not isinstance(exc, HTTPError):
+        return False
+    if exc.code in (429, 500, 502, 503, 504):
+        return True
+    if exc.code == 403:
+        # A 403 is a quota issue only when Google's response says so.
+        try:
+            detail = exc.read(4000).decode("utf-8", errors="replace").lower()
+        except Exception:
+            return False
+        return any(token in detail for token in ("quota", "resource_exhausted", "rate limit"))
+    return False
+
+
 def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     try:
         return gemini_analyze(title, content, source)
     except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
-        status = getattr(exc, "code", None)
-        # Fail over only for quota/rate-limit/service availability, not bad credentials
-        # or malformed requests. This prevents silently hiding configuration errors.
-        if status not in (429, 500, 502, 503, 504):
+        if not _should_use_grok(exc):
             raise
-        LOG.warning("Gemini unavailable (HTTP %s); switching to Grok fallback", status)
+        LOG.warning("Gemini unavailable (%s); switching to Grok fallback", type(exc).__name__)
         return grok_analyze(title, content, source)
-
 
 def score(result: dict) -> int:
     weights = (("importance", 40), ("mission_relevance", 30), ("freshness", 20), ("source_quality", 10))
