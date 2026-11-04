@@ -25,8 +25,10 @@ CREATE TABLE IF NOT EXISTS news_sources (
     name TEXT NOT NULL,
     feed_url TEXT NOT NULL UNIQUE,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    source_quality SMALLINT NOT NULL DEFAULT 50,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS source_quality SMALLINT NOT NULL DEFAULT 50;
 CREATE TABLE IF NOT EXISTS news_reports (
     id BIGSERIAL PRIMARY KEY,
     source_id BIGINT REFERENCES news_sources(id) ON DELETE SET NULL,
@@ -65,12 +67,12 @@ SYSTEM_PROMPT = (
     """تو دستیار غربالگری اخبار هستی. فقط بر اساس متن ورودی کار کن.
 خبر یا واقعیت جدید نساز و ادعای منبع را تأیید قطعی نکن. اگر متن شایعه/ادعاست
 is_rumor را true بگذار. خروجی فقط JSON معتبر با کلیدهای category, summary,
-importance, mission_relevance, freshness, source_quality, is_rumor باشد.
+importance, mission_relevance, freshness, is_rumor باشد.
 category یکی از این دسته‌ها باشد: """
     + "، ".join(CATEGORIES)
     + """
 summary خلاصه وفادار و کوتاه فارسی باشد و انتساب ادعا به منبع را حفظ کند.
-importance، mission_relevance، freshness و source_quality عدد صحیح 0 تا 100 باشند.
+importance، mission_relevance و freshness عدد صحیح 0 تا 100 باشند.
 امتیاز کل را محاسبه نکن؛ برنامه آن را با وزن‌های 40/30/20/10 محاسبه می‌کند.
 """
 )
@@ -231,7 +233,7 @@ def process_feed(conn, source: dict) -> int:
 
 def configure_sources(conn) -> None:
     """Upsert public RSS sources supplied as a JSON GitHub Actions variable."""
-    raw = os.getenv("NEWS_SOURCES_JSON", "[]")
+    raw = os.getenv("NEWS_SOURCES_JSON", "").strip() or "[]"
     try:
         sources = json.loads(raw)
     except json.JSONDecodeError as exc:
