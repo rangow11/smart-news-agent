@@ -82,12 +82,6 @@ def canonicalize(url: str) -> str:
     return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
-def fetch_url(url: str, timeout: int = 20) -> bytes:
-    request = Request(url, headers={"User-Agent": "SmartNewsAgent/0.1 (+RSS reader)"})
-    with urlopen(request, timeout=timeout) as response:
-        return response.read(5_000_000)
-
-
 def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     key = os.environ["GEMINI_API_KEY"]
     model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
@@ -103,7 +97,7 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
         "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
     }).encode()
     req = Request(endpoint, data=body, headers={"Content-Type": "application/json"}, method="POST")
-    with urlopen(req, timeout=90) as response:
+    with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
     text = payload["candidates"][0]["content"]["parts"][0]["text"]
     return json.loads(text), "gemini", model
