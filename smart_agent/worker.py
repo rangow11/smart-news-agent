@@ -203,38 +203,38 @@ def process_feed(conn, source: dict) -> int:
             published = None
             if entry.get("published_parsed"):
                 published = datetime(*entry.published_parsed[:6], tzinfo=UTC)
-            with conn.transaction():
-                with conn.cursor() as cur:
-                    cur.execute(
-                        """INSERT INTO news_reports
-                        (source_id, source_name, title, url, canonical_url, published_at, content,
-                         category, summary, importance, mission_relevance, freshness, source_quality,
-                         total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
-                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
-                        ON CONFLICT DO NOTHING RETURNING id""",
-                        (
-                            source["id"],
-                            source["name"],
-                            title,
-                            url,
-                            canonical,
-                            published,
-                            content,
-                            result["category"],
-                            result["summary"],
-                            result["importance"],
-                            result["mission_relevance"],
-                            result["freshness"],
-                            result["source_quality"],
-                            total,
-                            bool(result.get("is_rumor", False)),
-                            provider,
-                            model,
-                            json.dumps(result, ensure_ascii=False),
-                        ),
-                    )
-                    if cur.fetchone():
-                        inserted += 1
+            with conn.transaction(), conn.cursor() as cur:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """INSERT INTO news_reports
+                    (source_id, source_name, title, url, canonical_url, published_at, content,
+                     category, summary, importance, mission_relevance, freshness, source_quality,
+                     total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
+                    ON CONFLICT DO NOTHING RETURNING id""",
+                    (
+                        source["id"],
+                        source["name"],
+                        title,
+                        url,
+                        canonical,
+                        published,
+                        content,
+                        result["category"],
+                        result["summary"],
+                        result["importance"],
+                        result["mission_relevance"],
+                        result["freshness"],
+                        result["source_quality"],
+                        total,
+                        bool(result.get("is_rumor", False)),
+                        provider,
+                        model,
+                        json.dumps(result, ensure_ascii=False),
+                    ),
+                )
+                if cur.fetchone():
+                    inserted += 1
         except Exception:
             LOG.exception("Could not process report from %s: %s", source["name"], title[:100])
     conn.commit()
