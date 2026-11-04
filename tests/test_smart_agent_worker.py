@@ -1,5 +1,8 @@
 """Unit tests for the standalone cloud worker."""
-from smart_agent.worker import canonicalize, score
+from io import BytesIO
+from urllib.error import HTTPError, URLError
+
+from smart_agent.worker import _should_use_grok, canonicalize, score
 
 
 def test_canonicalize_drops_tracking_query_and_www() -> None:
@@ -30,3 +33,25 @@ def test_score_clamps_out_of_range_values() -> None:
         "source_quality": 100,
     }
     assert score(result) == 60
+
+
+
+def test_grok_fallback_on_rate_limit() -> None:
+    error = HTTPError("https://example.com", 429, "rate limited", {}, BytesIO(b""))
+    assert _should_use_grok(error)
+
+
+def test_grok_fallback_on_google_quota_forbidden_response() -> None:
+    error = HTTPError(
+        "https://example.com", 403, "quota", {}, BytesIO(b'{"error":"RESOURCE_EXHAUSTED: quota"}')
+    )
+    assert _should_use_grok(error)
+
+
+def test_no_grok_fallback_on_invalid_credentials() -> None:
+    error = HTTPError("https://example.com", 403, "forbidden", {}, BytesIO(b"invalid API key"))
+    assert not _should_use_grok(error)
+
+
+def test_grok_fallback_on_network_error() -> None:
+    assert _should_use_grok(URLError("temporary network failure"))
