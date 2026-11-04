@@ -166,5 +166,5 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     prompt = _analysis_input("عنوان", "متن خبر", "منبع")
     assert "داده غیرقابل اعتماد" in prompt
     assert "<article>" in prompt
-    assert "\\n" in prompt
-    assert "\\\\n" not in prompt
+    assert "\n" in prompt
+    assert "\\n" not in prompt
