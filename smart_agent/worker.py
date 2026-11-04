@@ -248,6 +248,8 @@ def process_feed(conn, source: dict) -> int:
             f"RSS parse failed for {source['name']}: {parsed.bozo_exception}"
         )
     inserted = 0
+    attempted = 0
+    failed_reports = 0
     for entry in parsed.entries[:100]:
         title = (entry.get("title") or "").strip()
         url = (entry.get("link") or "").strip()
@@ -263,6 +265,7 @@ def process_feed(conn, source: dict) -> int:
         content = (entry.get("summary") or entry.get("description") or "").strip()
         content = re.sub(r"<[^>]+>", " ", content)
         content = re.sub(r"\s+", " ", content)[:12000]
+        attempted += 1
         try:
             result, provider, model = analyze(title, content, source["name"])
             result = validate_analysis(result)
@@ -304,7 +307,10 @@ def process_feed(conn, source: dict) -> int:
                 if cur.fetchone():
                     inserted += 1
         except Exception:
+            failed_reports += 1
             LOG.exception("Could not process report from %s: %s", source["name"], title[:100])
+    if attempted and failed_reports == attempted:
+        raise RuntimeError("All new RSS reports failed processing")
     conn.commit()
     return inserted
 
@@ -340,6 +346,8 @@ def main() -> int:
     from psycopg.rows import dict_row
 
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
+    if not os.getenv("GEMINI_API_KEY"):
+        raise RuntimeError("GEMINI_API_KEY is not configured")
     database_url = os.environ["NEON_DATABASE_URL"]
     with psycopg.connect(database_url, row_factory=dict_row, connect_timeout=15) as conn:
         for statement in SCHEMA.split(";"):
