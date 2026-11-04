@@ -176,6 +176,16 @@ def score(result: dict) -> int:
     return round(sum(max(0, min(100, int(result.get(key, 0)))) * weight / 100 for key, weight in weights))
 
 
+def report_exists(conn, url: str, canonical_url: str) -> bool:
+    """Avoid paying for another LLM call when this report is already stored."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT 1 FROM news_reports WHERE url = %s OR canonical_url = %s LIMIT 1",
+            (url, canonical_url),
+        )
+        return cur.fetchone() is not None
+
+
 def process_feed(conn, source: dict) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries:
@@ -188,6 +198,12 @@ def process_feed(conn, source: dict) -> int:
         if not title or not url:
             continue
         canonical = canonicalize(url)
+        try:
+            if report_exists(conn, url, canonical):
+                continue
+        except Exception:
+            LOG.exception("Could not check duplicate status for %s", url)
+            continue
         content = (entry.get("summary") or entry.get("description") or "").strip()
         content = re.sub(r"<[^>]+>", " ", content)
         content = re.sub(r"\s+", " ", content)[:12000]
