@@ -55,7 +55,6 @@ def test_grok_fallback_on_network_error() -> None:
     assert _should_use_grok(URLError("temporary network failure"))
 
 
-
 def test_report_exists_checks_original_and_canonical_urls() -> None:
     class Cursor:
         def __init__(self) -> None:
