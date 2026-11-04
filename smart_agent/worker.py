@@ -61,15 +61,19 @@ CATEGORIES = [
     "وضعیت نیروها و رقیب", "سازمان‌های موازی", "غیبت و فرار",
     "خدمات شهری", "وضعیت روحیه", "سایر و پیشنهادات",
 ]
-SYSTEM_PROMPT = """تو دستیار غربالگری اخبار هستی. فقط بر اساس متن ورودی کار کن.
+SYSTEM_PROMPT = (
+    """تو دستیار غربالگری اخبار هستی. فقط بر اساس متن ورودی کار کن.
 خبر یا واقعیت جدید نساز و ادعای منبع را تأیید قطعی نکن. اگر متن شایعه/ادعاست
 is_rumor را true بگذار. خروجی فقط JSON معتبر با کلیدهای category, summary,
 importance, mission_relevance, freshness, source_quality, is_rumor باشد.
-category یکی از این دسته‌ها باشد: """ + "، ".join(CATEGORIES) + """
+category یکی از این دسته‌ها باشد: """
+    + "، ".join(CATEGORIES)
+    + """
 summary خلاصه وفادار و کوتاه فارسی باشد و انتساب ادعا به منبع را حفظ کند.
 importance، mission_relevance، freshness و source_quality عدد صحیح 0 تا 100 باشند.
 امتیاز کل را محاسبه نکن؛ برنامه آن را با وزن‌های 40/30/20/10 محاسبه می‌کند.
 """
+)
 
 
 def canonicalize(url: str) -> str:
@@ -96,10 +100,12 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
         + ":generateContent?key="
         + quote(key, safe="")
     )
-    body = json.dumps({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
-    }).encode()
+    body = json.dumps(
+        {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1},
+        }
+    ).encode()
     req = Request(endpoint, data=body, headers={"Content-Type": "application/json"}, method="POST")
     with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
@@ -111,12 +117,14 @@ def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]
     key = os.environ["GROK_API_KEY"]
     model = os.getenv("GROK_MODEL", "grok-3-mini")
     prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
-    body = json.dumps({
-        "model": model,
-        "messages": [{"role": "user", "content": prompt}],
-        "response_format": {"type": "json_object"},
-        "temperature": 0.1,
-    }).encode()
+    body = json.dumps(
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.1,
+        }
+    ).encode()
     req = Request(
         "https://api.x.ai/v1/chat/completions",
         data=body,
@@ -192,11 +200,26 @@ def process_feed(conn, source: dict) -> int:
                      total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s)
                     ON CONFLICT DO NOTHING RETURNING id""",
-                    (source["id"], source["name"], title, url, canonical, published, content,
-                     result["category"], result["summary"], result["importance"],
-                     result["mission_relevance"], result["freshness"], result["source_quality"],
-                     total, bool(result.get("is_rumor", False)), provider, model,
-                     json.dumps(result, ensure_ascii=False)),
+                    (
+                        source["id"],
+                        source["name"],
+                        title,
+                        url,
+                        canonical,
+                        published,
+                        content,
+                        result["category"],
+                        result["summary"],
+                        result["importance"],
+                        result["mission_relevance"],
+                        result["freshness"],
+                        result["source_quality"],
+                        total,
+                        bool(result.get("is_rumor", False)),
+                        provider,
+                        model,
+                        json.dumps(result, ensure_ascii=False),
+                    ),
                 )
                 if cur.fetchone():
                     inserted += 1
