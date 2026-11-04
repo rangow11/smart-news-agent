@@ -187,9 +187,11 @@ def process_feed(conn, source: dict) -> int:
         content = re.sub(r"\s+", " ", content)[:12000]
         try:
             result, provider, model = analyze(title, content, source["name"])
-            required = ("category", "summary", "importance", "mission_relevance", "freshness", "source_quality")
+            required = ("category", "summary", "importance", "mission_relevance", "freshness")
             if any(key not in result for key in required):
-                raise ValueError("AI response is missing required scoring fields")
+                raise ValueError("AI response is missing required classification/scoring fields")
+            # Source reliability is operator-configured, never guessed by the LLM.
+            result["source_quality"] = source["source_quality"]
             total = score(result)
             published = None
             if entry.get("published_parsed"):
@@ -243,12 +245,14 @@ def configure_sources(conn) -> None:
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
+        quality = max(0, min(100, int(item.get("source_quality", 50))))
         conn.execute(
-            """INSERT INTO news_sources (name, feed_url, enabled)
-               VALUES (%s, %s, TRUE)
+            """INSERT INTO news_sources (name, feed_url, enabled, source_quality)
+               VALUES (%s, %s, TRUE, %s)
                ON CONFLICT (feed_url) DO UPDATE
-               SET name = EXCLUDED.name, enabled = TRUE""",
-            (str(item["name"]).strip(), str(item["feed_url"]).strip()),
+               SET name = EXCLUDED.name, enabled = TRUE,
+                   source_quality = EXCLUDED.source_quality""",
+            (str(item["name"]).strip(), str(item["feed_url"]).strip(), quality),
         )
     conn.commit()
 
@@ -264,7 +268,7 @@ def main() -> int:
         conn.commit()
         configure_sources(conn)
         sources = conn.execute(
-            "SELECT id, name, feed_url FROM news_sources WHERE enabled = TRUE ORDER BY id"
+            "SELECT id, name, feed_url, source_quality FROM news_sources WHERE enabled = TRUE ORDER BY id"
         ).fetchall()
         total = 0
         for source in sources:
