@@ -203,7 +203,8 @@ def process_feed(conn, source: dict) -> int:
             published = None
             if entry.get("published_parsed"):
                 published = datetime(*entry.published_parsed[:6], tzinfo=UTC)
-            with conn.transaction():\n                with conn.cursor() as cur:
+            with conn.transaction():
+                with conn.cursor() as cur:
                     cur.execute(
                         """INSERT INTO news_reports
                         (source_id, source_name, title, url, canonical_url, published_at, content,
