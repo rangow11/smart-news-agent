@@ -6,7 +6,7 @@ from urllib.error import HTTPError, URLError
 from smart_agent.worker import (
     CATEGORIES,
     _analysis_input,
-    _should_use_grok,
+    _should_try_next_gemini,
     canonicalize,
     report_exists,
     score,
@@ -44,23 +44,42 @@ def test_score_clamps_out_of_range_values() -> None:
     assert score(result) == 60
 
 
-def test_grok_fallback_on_rate_limit() -> None:
+def test_gemini_fallback_on_rate_limit() -> None:
     error = HTTPError("https://example.com", 429, "rate limited", {}, BytesIO(b""))
-    assert _should_use_grok(error)
+    assert _should_try_next_gemini(error)
 
 
-def test_grok_fallback_on_google_quota_forbidden_response() -> None:
+def test_gemini_fallback_on_google_quota_forbidden_response() -> None:
     error = HTTPError("https://example.com", 403, "quota", {}, BytesIO(b'{"error":"RESOURCE_EXHAUSTED: quota"}'))
-    assert _should_use_grok(error)
+    assert _should_try_next_gemini(error)
 
 
-def test_no_grok_fallback_on_invalid_credentials() -> None:
+def test_no_model_fallback_on_invalid_credentials() -> None:
     error = HTTPError("https://example.com", 403, "forbidden", {}, BytesIO(b"invalid API key"))
-    assert not _should_use_grok(error)
+    assert not _should_try_next_gemini(error)
 
 
-def test_grok_fallback_on_network_error() -> None:
-    assert _should_use_grok(URLError("temporary network failure"))
+def test_gemini_fallback_on_network_error() -> None:
+    assert _should_try_next_gemini(URLError("temporary network failure"))
+
+
+def test_gemini_fallback_on_unusable_model_output() -> None:
+    assert _should_try_next_gemini(ValueError("invalid JSON"))
+
+
+def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
+    from smart_agent.worker import _gemini_model_chain
+
+    monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    assert _gemini_model_chain() == [
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-2.5-flash",
+    ]
 
 
 def test_report_exists_checks_original_and_canonical_urls() -> None:
