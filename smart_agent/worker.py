@@ -238,7 +238,9 @@ def report_exists(conn, url: str, canonical_url: str) -> bool:
 def process_feed(conn, source: dict) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries:
-        raise RuntimeError(f"RSS parse failed for {source['name']}: {parsed.bozo_exception}")
+        raise RuntimeError(
+            f"RSS parse failed for {source['name']}: {parsed.bozo_exception}"
+        )
     inserted = 0
     for entry in parsed.entries[:100]:
         title = (entry.get("title") or "").strip()
