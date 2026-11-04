@@ -51,8 +51,14 @@ CREATE TABLE IF NOT EXISTS news_reports (
     ai_provider TEXT,
     ai_model TEXT,
     ai_processed_at TIMESTAMPTZ,
-    raw_ai_json JSONB
+    raw_ai_json JSONB,
+    review_status TEXT NOT NULL DEFAULT 'جدید',
+    review_note TEXT,
+    reviewed_at TIMESTAMPTZ
 );
+ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'جدید';
+ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_note TEXT;
+ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_news_reports_score_time
     ON news_reports(total_score DESC, fetched_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_reports_published
