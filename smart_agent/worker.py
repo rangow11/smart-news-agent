@@ -13,7 +13,7 @@ import re
 import sys
 from datetime import UTC, datetime
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
 import feedparser
@@ -78,7 +78,8 @@ def canonicalize(url: str) -> str:
     if host.startswith("www."):
         host = host[4:]
     path = re.sub(r"/+$", "", parts.path) or "/"
-    return urlunsplit((parts.scheme.lower() or "https", host, path, "", ""))
+    query = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True) if not key.lower().startswith("utm_") and key.lower() not in {"fbclid", "gclid", "mc_cid", "mc_eid"}]
+    return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
 def fetch_url(url: str, timeout: int = 20) -> bytes:
