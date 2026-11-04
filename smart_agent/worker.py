@@ -6,13 +6,11 @@ classification/scoring, and Grok fallback on Gemini quota/rate-limit failures.
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import os
 import re
 import sys
-import time
 from datetime import UTC, datetime
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
@@ -37,7 +35,7 @@ CREATE TABLE IF NOT EXISTS news_reports (
     source_name TEXT NOT NULL,
     title TEXT NOT NULL,
     url TEXT NOT NULL UNIQUE,
-    canonical_url TEXT NOT NULL,
+    canonical_url TEXT NOT NULL UNIQUE,
     published_at TIMESTAMPTZ,
     fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     content TEXT NOT NULL DEFAULT '',
@@ -182,7 +180,7 @@ def process_feed(conn, source: dict) -> int:
                      category, summary, importance, mission_relevance, freshness, source_quality,
                      total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s)
-                    ON CONFLICT (url) DO NOTHING RETURNING id""",
+                    ON CONFLICT DO NOTHING RETURNING id""",
                     (source["id"], source["name"], title, url, canonical, published, content,
                      result["category"], result["summary"], result["importance"],
                      result["mission_relevance"], result["freshness"], result["source_quality"],
@@ -197,12 +195,35 @@ def process_feed(conn, source: dict) -> int:
     return inserted
 
 
+def configure_sources(conn) -> None:
+    """Upsert public RSS sources supplied as a JSON GitHub Actions variable."""
+    raw = os.getenv("NEWS_SOURCES_JSON", "[]")
+    try:
+        sources = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError("NEWS_SOURCES_JSON must be a JSON array") from exc
+    if not isinstance(sources, list):
+        raise ValueError("NEWS_SOURCES_JSON must be a JSON array")
+    for item in sources:
+        if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
+            raise ValueError("Each source needs name and feed_url")
+        conn.execute(
+            """INSERT INTO news_sources (name, feed_url, enabled)
+               VALUES (%s, %s, TRUE)
+               ON CONFLICT (feed_url) DO UPDATE
+               SET name = EXCLUDED.name, enabled = TRUE""",
+            (str(item["name"]).strip(), str(item["feed_url"]).strip()),
+        )
+    conn.commit()
+
+
 def main() -> int:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
     database_url = os.environ["NEON_DATABASE_URL"]
     with psycopg.connect(database_url, row_factory=dict_row, connect_timeout=15) as conn:
         conn.execute(SCHEMA)
         conn.commit()
+        configure_sources(conn)
         sources = conn.execute(
             "SELECT id, name, feed_url FROM news_sources WHERE enabled = TRUE ORDER BY id"
         ).fetchall()
