@@ -173,6 +173,7 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     assert "\n" in prompt
     assert "\\n" not in prompt
 
+
 def test_missing_gemini_key_fails_without_model_fallback(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     try:
