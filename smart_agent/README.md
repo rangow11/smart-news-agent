@@ -25,10 +25,10 @@ Add these repository variables:
 
 Optional variables:
 
-- `GEMINI_MODEL` (default: `gemini-2.5-flash`)
-- `GROK_MODEL` (default: `grok-3-mini`)
+- `GEMINI_MODEL` (default: `gemini-3.8-flash`)
+- `GROK_MODEL` (default: `grok-4.7`)
 
-The scheduled workflow runs every 15 minutes. It can also be started manually
+**هزینه:** API گروک رایگان نیست و بر اساس توکن مصرفی صورتحساب دارد؛ فقط هنگام fallback فراخوانی می‌شود. اگر هزینه ناخواسته نمی‌خواهید، کلید Grok را تا زمان تعیین سقف هزینه وارد نکنید.\n\nThe scheduled workflow runs every 15 minutes. It can also be started manually
 from the Actions tab once this workflow exists on the default branch.
 
 ## Current behavior
