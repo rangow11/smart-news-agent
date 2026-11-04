@@ -78,7 +78,11 @@ def canonicalize(url: str) -> str:
     if host.startswith("www."):
         host = host[4:]
     path = re.sub(r"/+$", "", parts.path) or "/"
-    query = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True) if not key.lower().startswith("utm_") and key.lower() not in {"fbclid", "gclid", "mc_cid", "mc_eid"}]
+    query = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if not key.lower().startswith("utm_") and key.lower() not in {"fbclid", "gclid", "mc_cid", "mc_eid"}
+    ]
     return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
@@ -119,7 +123,7 @@ def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
         method="POST",
     )
-    with urlopen(req, timeout=90) as response:
+    with urlopen(req, timeout=90) as response:  # noqa: S310
         payload = json.loads(response.read())
     return json.loads(payload["choices"][0]["message"]["content"]), "grok", model
 
