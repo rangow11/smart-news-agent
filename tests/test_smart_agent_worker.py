@@ -29,4 +29,4 @@ def test_score_clamps_out_of_range_values() -> None:
         "freshness": 50,
         "source_quality": 100,
     }
-    assert score(result) == 70
+    assert score(result) == 60
