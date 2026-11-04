@@ -17,7 +17,7 @@ implemented yet) and lets an operator update the review status.
 5. Set Worker secrets:
    - `DATABASE_URL`: the Neon connection string.
    - `DASHBOARD_ACCESS_TOKEN`: a long random token (at least 24 characters).
-4. Open the Worker URL. Enter the access token in the dashboard login panel.
+6. Open the Worker URL. Enter the access token in the dashboard login panel.
 
 For local preview, run `npm install` then `npm run dev` from this directory and
 configure the same two secrets in Wrangler local secrets.
