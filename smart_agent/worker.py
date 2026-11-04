@@ -136,7 +136,11 @@ def gemini_analyze(title: str, content: str, source: str, model: str | None = No
     key = os.environ["GEMINI_API_KEY"]
     selected_model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
     prompt = _analysis_input(title, content, source)
-    endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + quote(selected_model, safe="") + ":generateContent"
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        + quote(selected_model, safe="")
+        + ":generateContent"
+    )
     body = json.dumps(
         {
             "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
@@ -177,7 +181,7 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     if _ACTIVE_GEMINI_MODEL in chain:
         # Once this run has stepped down, do not bounce back to a model that
         # already exhausted its quota; continue from the active fallback.
-        chain = chain[chain.index(_ACTIVE_GEMINI_MODEL):]
+        chain = chain[chain.index(_ACTIVE_GEMINI_MODEL) :]
     last_error: Exception | None = None
     for index, model in enumerate(chain):
         try:
