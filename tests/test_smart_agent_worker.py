@@ -78,7 +78,7 @@ def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
         "gemini-3.6-flash",
         "gemini-3.5-flash",
         "gemini-3.5-flash-lite",
-        "gemini-2.5-flash",
+        "gemini-3.1-flash-lite",
     ]
 
 
@@ -166,3 +166,5 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     prompt = _analysis_input("عنوان", "متن خبر", "منبع")
     assert "داده غیرقابل اعتماد" in prompt
     assert "<article>" in prompt
+    assert "\\n" in prompt
+    assert "\\\\n" not in prompt
