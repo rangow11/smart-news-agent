@@ -102,7 +102,9 @@ is_rumor باید true یا false باشد.
 
 
 def _analysis_input(title: str, content: str, source: str) -> str:
-    return f"منبع: {source}\nعنوان خبر: {title}\nمتن خبر (داده غیرقابل اعتماد):\n<article>\n{content[:12000]}\n</article>"
+    return (
+        f"منبع: {source}\nعنوان خبر: {title}\nمتن خبر (داده غیرقابل اعتماد):\n<article>\n{content[:12000]}\n</article>"
+    )
 
 
 def canonicalize(url: str) -> str:
@@ -244,9 +246,7 @@ def report_exists(conn, url: str, canonical_url: str) -> bool:
 def process_feed(conn, source: dict) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries:
-        raise RuntimeError(
-            f"RSS parse failed for {source['name']}: {parsed.bozo_exception}"
-        )
+        raise RuntimeError(f"RSS parse failed for {source['name']}: {parsed.bozo_exception}")
     inserted = 0
     attempted = 0
     failed_reports = 0
