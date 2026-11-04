@@ -102,7 +102,7 @@ def canonicalize(url: str) -> str:
 
 def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     key = os.environ["GEMINI_API_KEY"]
-    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    model = os.getenv("GEMINI_MODEL") or "gemini-3.8-flash"
     prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
     endpoint = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -124,7 +124,7 @@ def gemini_analyze(title: str, content: str, source: str) -> tuple[dict, str, st
 
 def grok_analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     key = os.environ["GROK_API_KEY"]
-    model = os.getenv("GROK_MODEL", "grok-3-mini")
+    model = os.getenv("GROK_MODEL") or "grok-4.7"
     prompt = f"{SYSTEM_PROMPT}\nمنبع: {source}\nعنوان: {title}\nمتن: {content[:12000]}"
     body = json.dumps(
         {
