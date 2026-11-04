@@ -2,7 +2,7 @@
 
 The legacy Topic Watch application remains untouched. This worker is the first
 deployable slice: RSS ingestion, deterministic URL deduplication, Gemini-first
-classification/scoring, and Grok fallback on Gemini quota/rate-limit failures.
+classification/scoring, and automatic fallback across Gemini model generations.
 """
 
 from __future__ import annotations
@@ -175,7 +175,9 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     global _ACTIVE_GEMINI_MODEL
     chain = _gemini_model_chain()
     if _ACTIVE_GEMINI_MODEL in chain:
-        chain = [_ACTIVE_GEMINI_MODEL, *[model for model in chain if model != _ACTIVE_GEMINI_MODEL]]
+        # Once this run has stepped down, do not bounce back to a model that
+        # already exhausted its quota; continue from the active fallback.
+        chain = chain[chain.index(_ACTIVE_GEMINI_MODEL):]
     last_error: Exception | None = None
     for index, model in enumerate(chain):
         try:
