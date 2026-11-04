@@ -167,6 +167,8 @@ def test_validate_analysis_rejects_invalid_score_and_rumor_type() -> None:
 def test_analysis_input_labels_article_as_untrusted_data() -> None:
     prompt = _analysis_input("عنوان", "متن خبر", "منبع")
     assert "داده غیرقابل اعتماد" in prompt
+    assert "آمار تجمیعی" in prompt
+    assert "موقعیت" in prompt
     assert "<article>" in prompt
     assert "\n" in prompt
     assert "\\n" not in prompt
