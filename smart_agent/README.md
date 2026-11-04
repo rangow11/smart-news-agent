@@ -18,7 +18,7 @@ Add these repository variables:
 
 ```json
 [
-  {"name": "Example News", "feed_url": "https://example.com/rss.xml"},
+  {"name": "Example News", "feed_url": "https://example.com/rss.xml", "source_quality": 80},
   {"name": "Example World", "feed_url": "https://example.org/feed"}
 ]
 ```
