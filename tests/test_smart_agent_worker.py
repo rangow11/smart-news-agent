@@ -96,6 +96,7 @@ def test_report_exists_checks_original_and_canonical_urls() -> None:
         "https://example.com/a",
     )
 
+
 def test_validate_analysis_accepts_valid_model_output() -> None:
     result = {
         "category": CATEGORIES[0],
