@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827"><title>عامل خبری هوشمند</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#e8edf5;background:#0b1220;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#111c30,#0b1220 55%);min-height:100vh}
+header{position:sticky;top:0;background:#101a2beF;border-bottom:1px solid #29364b;padding:16px 20px;z-index:2;backdrop-filter:blur(12px)}
+h1{font-size:20px;margin:0 0 6px}.sub{font-size:12px;color:#9aa9bf}
+main{max-width:1100px;margin:auto;padding:18px}
+.panel{background:#121e31;border:1px solid #293950;border-radius:14px;padding:14px;margin-bottom:14px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+input,select,button{font:inherit;border-radius:9px;border:1px solid #3a4b63;background:#0c1728;color:#e8edf5;padding:10px;min-width:0}
+button{cursor:pointer;background:#245a89;border-color:#3979ae}button:hover{filter:brightness(1.15)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row input{flex:1;min-width:190px}
+#stats{color:#aab9ce;font-size:13px;margin-top:10px}
+.card{background:#121e31;border:1px solid #2b3a50;border-radius:14px;padding:15px;margin:12px 0}
+.card h2{font-size:17px;line-height:1.8;margin:7px 0}.meta{color:#9eb0c8;font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
+.summary{line-height:2;color:#dbe4f0;margin:9px 0}.badge{font-size:12px;border-radius:20px;padding:5px 9px;background:#253d58;display:inline-block}
+.badge.rumor{background:#633b27;color:#ffd2a8}.score{font-weight:bold;color:#9bd6ff}
+a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.actions button{font-size:12px;padding:8px 10px}.actions button.active{background:#23734d;border-color:#3ca875}
+.hidden{display:none}.error{color:#ff9e9e}.empty{text-align:center;color:#9eacc0;padding:35px}
+@media(max-width:600px){header{padding:13px}main{padding:12px}.card{padding:12px}.card h2{font-size:15px}}
+</style></head>
+<body>
+<header><h1>عامل خبری هوشمند</h1><div class="sub">رصد و اولویت‌بندی خبرهای عمومی · نسخه آزمایشی</div></header>
+<main>
+<section id="login" class="panel">
+ <div class="row"><input id="token" type="password" placeholder="کلید دسترسی داشبورد"><button id="connect">اتصال</button></div>
+ <div class="sub" style="margin-top:9px">کلید را مدیر سامانه در تنظیمات Cloudflare تعریف می‌کند. کلید فقط در همین مرورگر ذخیره می‌شود.</div>
+</section>
+<section id="filters" class="panel hidden">
+ <div class="controls">
+  <input id="q" placeholder="جست‌وجو در عنوان، خلاصه و منبع">
+  <select id="category"><option value="">همه دسته‌ها</option></select>
+  <select id="status"><option value="">همه وضعیت‌ها</option><option>جدید</option><option>انتخاب‌شده</option><option>ارسال‌شده</option><option>منتشرشده</option><option>ردشده</option><option>ذخیره‌شده برای بررسی</option></select>
+  <select id="min"><option value="0">همه امتیازها</option><option value="65">۶۵ به بالا</option><option value="75">۷۵ به بالا</option><option value="85">۸۵ به بالا</option></select>
+ </div>
+ <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><button id="logout">خروج</button><span id="stats"></span></div>
+</section>
+<div id="message" class="sub"></div><section id="reports"></section>
+</main>
+<script>
+const categories=["شایعات","نقاط قوت و ضعف","تهدیدات و فرصت‌ها","مشکلات و صدمات","وضعیت نیروها و رقیب","سازمان‌های موازی","غیبت و فرار","خدمات شهری","وضعیت روحیه","سایر و پیشنهادات"];
+const $=id=>document.getElementById(id);let token=localStorage.getItem("sna_token")||"";
+for(const c of categories){const o=document.createElement("option");o.value=c;o.textContent=c;$("category").append(o)}
+function auth(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"}}
+function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(r.status===401)throw Error("کلید دسترسی نامعتبر است");if(!r.ok)throw Error("خطا در ارتباط با سرویس ("+r.status+")");return r.json()}
+function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token)}
+async function load(){if(!token)return;showApp();$("message").textContent="در حال دریافت خبرها…";$("reports").replaceChildren();
+ try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,min_score:$("min").value,limit:"50"});const data=await api("/api/reports?"+p);
+ $("stats").textContent="نمایش "+data.count+" خبر";$("message").textContent="";
+ if(!data.count){$("reports").append(el("div","panel empty","خبری با این فیلتر پیدا نشد."));return}
+ for(const r of data.reports){const card=el("article","card");const meta=el("div","meta");meta.append(el("span","badge",r.category||"بدون دسته"),el("span","badge",r.review_status||"جدید"),el("span","score","امتیاز "+(r.total_score??"—")),el("span","",r.source_name||"منبع نامشخص"));if(r.is_rumor)meta.append(el("span","badge rumor","شایعه / ادعای تأییدنشده"));
+ const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const link=el("a","", "مشاهده گزارش منبع");link.href=r.url;link.target="_blank";link.rel="noopener noreferrer";
+ const date=el("div","meta",r.published_at?new Date(r.published_at).toLocaleString("fa-IR"):"زمان انتشار نامشخص");
+ const actions=el("div","actions");for(const st of data.statuses){const b=el("button",st===r.review_status?"active":"",st);b.addEventListener("click",()=>updateStatus(r.id,st));actions.append(b)}
+ card.append(meta,title,summary,link,date,actions);$("reports").append(card)}
+ }catch(e){$("message").className="error";$("message").textContent=e.message}}
+async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status",{method:"PATCH",body:JSON.stringify({status})});await load()}catch(e){$("message").textContent=e.message}}
+$("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);load()};
+$("refresh").onclick=load;$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
+for(const id of ["category","status","min"])$(id).onchange=load;
+let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(load,350)};
+if(token){$("token").value=token;load()}else showApp();
+</script></body></html>
