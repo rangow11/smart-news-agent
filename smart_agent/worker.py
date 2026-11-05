@@ -219,9 +219,7 @@ def _should_try_next_gemini(exc: Exception) -> bool:
                 return False
             return any(token in detail for token in ("quota", "resource_exhausted", "rate limit"))
         return False
-    if isinstance(exc, (URLError, TimeoutError, ValueError, KeyError)):
-        return True
-    return False
+    return isinstance(exc, (URLError, TimeoutError, ValueError, KeyError))
 
 
 # legacy branch removed
@@ -895,7 +893,7 @@ def main() -> int:
                 results, provider, model = analyze_batch(batch)
                 LOG.info("Batch %d/%d analyzed with %s/%s: %d valid results",
                          batch_index, len(batches), provider, model, len(results))
-            except Exception as exc:
+            except Exception:
                 LOG.exception("Analysis batch %d/%d failed; skipping %d news items without retry",
                               batch_index, len(batches), len(batch))
                 skipped_item_ids.update(item["id"] for item in batch)
@@ -931,7 +929,7 @@ def main() -> int:
                         if cur.fetchone():
                             inserted_total += 1
                             inserted_by_source[source["id"]] = inserted_by_source.get(source["id"], 0) + 1
-                except Exception as exc:
+                except Exception:
                     skipped_item_ids.add(item["id"])
                     LOG.exception("Could not save analyzed news item %s; it will not be retried", item["id"])
 
