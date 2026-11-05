@@ -141,13 +141,14 @@ async function pollBrowserNotifications(){
  try{
   const p=new URLSearchParams({sort:'newest',limit:'20',offset:'0'});
   const data=await api('/api/reports?'+p);
-  const latest=data.reports[0];
-  if(!latest)return;
-  const stamp=latest.fetched_at||latest.published_at;
+  if(!data.reports.length)return;
+  const stamps=data.reports.map(r=>r.fetched_at).filter(Boolean).sort();
+  const stamp=stamps[stamps.length-1]||data.reports[0].published_at;
   if(!notificationBaseline){notificationBaseline=stamp;return}
   const fresh=data.reports.filter(r=>(r.fetched_at||r.published_at)>notificationBaseline);
   if(fresh.length){
-   const newest=fresh[0];new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
+   const newest=fresh.reduce((a,b)=>(a.total_score||0)>=(b.total_score||0)?a:b);
+   new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
    notificationBaseline=stamp;
   }
  }catch(e){console.warn('notification poll failed',e)}
