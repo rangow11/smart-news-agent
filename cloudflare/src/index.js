@@ -21,7 +21,7 @@ function validFeedUrl(value) {
     if (u.protocol !== "https:" || u.username || u.password) return false;
     const h = u.hostname.toLowerCase();
     if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") ||
-        h === "metadata.google.internal" || h === "::1" || h.startsWith("fc") || h.startsWith("fe80:")) return false;
+        h === "metadata.google.internal" || h === "::1" || h === "[::1]" || h.startsWith("fc") || h.startsWith("fe80:")) return false;
     if (/^(10\.|127\.|169\.254\.|192\.168\.)/.test(h)) return false;
     const m = h.match(/^172\.(\d+)\./);
     if (m && Number(m[1]) >= 16 && Number(m[1]) <= 31) return false;
@@ -57,7 +57,7 @@ async function verifyFeedUrl(value) {
     if (!response.ok) return { ok: false, error: "feed_http_" + response.status };
     const type = response.headers.get("content-type") || "";
     const body = (await response.text()).slice(0, 1000000);
-    if (!/(<rss[\\s>]|<feed[\\s>]|<rdf:RDF[\\s>])/i.test(body)) {
+    if (!/(<rss[\s>]|<feed[\s>]|<rdf:RDF[\s>])/i.test(body)) {
       return { ok: false, error: "not_valid_rss_or_atom" };
     }
     return { ok: true, content_type: type };
