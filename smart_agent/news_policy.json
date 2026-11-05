@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "mission": "رصد گسترده اخبار عمومی منتشرشده، ارزیابی اهمیت و اولویت‌بندی برای انتخاب و ارسال دستی توسط اپراتور؛ عامل خبر تولید نمی‌کند.",
+  "primary_stream": {
+    "name": "اخبار اصلی و راهبردی",
+    "topics": [
+      "ایران و سیاست خارجی ایران",
+      "کشورهای همسایه و تحولات منطقه‌ای",
+      "جنگ، درگیری‌ها و تنش‌های مرتبط با ایران، اسرائیل و آمریکا",
+      "تحولات سیاسی، حکومتی، امنیتی و دفاعی در سطح عمومی و راهبردی",
+      "روابط بین‌الملل، دیپلماسی، ائتلاف‌ها و تصمیمات کلان",
+      "تحولات اقتصادی، اجتماعی و زیرساختی در صورت اثرگذاری راهبردی بر ایران یا منطقه",
+      "تحولات مهم بین‌المللی با اثر مستقیم یا قابل‌توجه بر ایران و منطقه"
+    ],
+    "daily_limit": null,
+    "priority": "highest"
+  },
+  "secondary_stream": {
+    "name": "اخبار تکمیلی دسته‌بندی‌شده",
+    "categories": [
+      "شایعات",
+      "نقاط قوت و ضعف",
+      "تهدیدات و فرصت‌ها",
+      "مشکلات و صدمات",
+      "وضعیت نیروها و رقیب",
+      "سازمان‌های موازی",
+      "غیبت و فرار",
+      "خدمات شهری",
+      "وضعیت روحیه",
+      "سایر و پیشنهادات"
+    ],
+    "daily_limit": null,
+    "priority": "normal"
+  },
+  "collection": {
+    "topic_prefilter": "permissive",
+    "never_drop_only_for_low_score": true,
+    "deduplicate_by_url": true,
+    "require_title_and_url": true,
+    "require_publication_timestamp": true,
+    "languages": [
+      "fa",
+      "en",
+      "ar"
+    ],
+    "display_all_eligible_reports": true,
+    "manual_publication_decision_only": true
+  },
+  "verification": {
+    "independent_fact_checking": false,
+    "preserve_source_attribution": true,
+    "label_unverified_claims": true,
+    "never_present_claim_as_confirmed_fact": true
+  },
+  "scoring": {
+    "status": "provisional_current_implementation",
+    "weights": {
+      "importance": 40,
+      "mission_relevance": 30,
+      "freshness": 20,
+      "source_quality": 10
+    },
+    "source_quality_origin": "operator_configured",
+    "diversity": "prefer less-used sources as a tie-breaker or ranking aid; do not override a clearly more important or fresher report",
+    "thresholds_are_filters_only": true
+  },
+  "output": {
+    "sort_default": "combined",
+    "sort_options": [
+      "score",
+      "newest",
+      "combined"
+    ],
+    "no_daily_display_cap": true,
+    "operator_selects_reports": true,
+    "automatic_publishing": false
+  },
+  "safety": {
+    "exclude_personal_or_private_information": true,
+    "exclude_actionable_operational_details": true,
+    "exclude_force_positions_movements_readiness_routes_timing_and_exploitable_vulnerabilities": true,
+    "absence_or_desertion": "public_aggregate_statistics_only"
+  }
+}
