@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import socket
 import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -520,6 +521,7 @@ def main() -> int:
     from psycopg.rows import dict_row
 
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(message)s")
+    socket.setdefaulttimeout(max(5, int(os.getenv("HTTP_TIMEOUT_SECONDS", "15"))))
     if not os.getenv("GEMINI_API_KEY"):
         raise RuntimeError("GEMINI_API_KEY is not configured")
     database_url = os.environ["NEON_DATABASE_URL"]
@@ -543,6 +545,7 @@ def main() -> int:
         failed_sources = 0
         for source in sources:
             try:
+                LOG.info("Checking RSS source: %s", source["name"])
                 count = process_feed(conn, source, window_start, window_end)
                 conn.execute(
                     """UPDATE news_sources SET last_checked_at = NOW(), last_success_at = NOW(),
