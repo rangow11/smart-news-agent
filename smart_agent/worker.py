@@ -521,19 +521,11 @@ def configure_sources(conn) -> None:
               OR LEFT(name, 17) = 'پایش اخبار استان '"""
     ).fetchall()
     for existing in obsolete_sources:
-        if existing["feed_url"] in configured_feed_urls:
-            continue
-        has_reports = conn.execute(
-            "SELECT EXISTS (SELECT 1 FROM news_reports WHERE source_id = %s)",
-            (existing["id"],),
-        ).fetchone()["exists"]
-        if has_reports:
+        if existing["feed_url"] not in configured_feed_urls:
             conn.execute(
                 "UPDATE news_sources SET enabled = FALSE, operator_enabled = FALSE WHERE id = %s",
                 (existing["id"],),
             )
-        else:
-            conn.execute("DELETE FROM news_sources WHERE id = %s", (existing["id"],))
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
