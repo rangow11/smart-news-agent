@@ -1,8 +1,8 @@
 """Unit tests for the standalone cloud worker."""
 
-import json
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
+import json
 from time import struct_time
 from urllib.error import HTTPError, URLError
 
