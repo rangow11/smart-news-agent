@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS news_reports (
     category TEXT,
     news_track TEXT NOT NULL DEFAULT 'secondary',
     summary TEXT,
+    detailed_report TEXT,
     importance INTEGER,
     mission_relevance INTEGER,
     freshness INTEGER,
@@ -59,6 +60,7 @@ CREATE TABLE IF NOT EXISTS news_reports (
     reviewed_at TIMESTAMPTZ
 );
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS news_track TEXT NOT NULL DEFAULT 'secondary';
+ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS detailed_report TEXT;
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'جدید';
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_note TEXT;
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
@@ -93,8 +95,13 @@ SYSTEM_PROMPT = (
     + "، ".join(CATEGORIES)
     + """
 مهم: خبر مهم را فقط به دلیل اینکه دقیقاً در یکی از دسته‌های تکمیلی جا نمی‌گیرد، کم‌اهمیت تلقی نکن.
-خروجی فقط JSON معتبر با کلیدهای news_track, category, summary, importance,
+خروجی فقط JSON معتبر با کلیدهای news_track, category, summary, detailed_report, importance,
 mission_relevance, freshness, is_rumor باشد.
+summary خلاصه کوتاه باشد. detailed_report یک گزارش تفصیلی فارسی در ۳ تا ۶ بند منظم باشد؛
+نکات مهم موجود در متن ورودی، ترتیب رویدادها، نام‌ها، اعداد، تاریخ‌ها و نقل‌قول‌های ضروری را حفظ کند.
+اگر متن ورودی انگلیسی یا عربی است، آن را دقیق و وفادارانه به فارسی ترجمه و بازنویسی کن.
+گزارش تفصیلی را با بیان خودت بنویس و متن طولانی منبع را عیناً بازنشر نکن.
+هیچ جزئیات، علت، نتیجه یا نقل‌قولی را که در متن ورودی نیست اضافه نکن؛ اگر ورودی کوتاه یا ناقص است، فقط اطلاعات موجود را شرح بده و کمبود اطلاعات را صریح بگو.
 news_track باید «main» برای خبرهای اصلی و راهبردیِ مرتبط با موضوعات اصلی، یا «secondary» برای خبرهای تکمیلی باشد.
 category دقیقاً یکی از دسته‌های تکمیلی بالا باشد؛ اگر خبر راهبردی است و دسته دقیقی ندارد،
 از «سایر و پیشنهادات» استفاده کن.
@@ -234,6 +241,8 @@ def validate_analysis(result: dict) -> dict:
         raise ValueError("AI response contains an unknown category")
     if not isinstance(result.get("summary"), str) or not result["summary"].strip():
         raise ValueError("AI response contains an empty or invalid summary")
+    if not isinstance(result.get("detailed_report"), str) or not result["detailed_report"].strip():
+        raise ValueError("AI response contains an empty or invalid detailed report")
     for key in ("importance", "mission_relevance", "freshness"):
         value = result.get(key)
         if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 100:
@@ -291,6 +300,25 @@ def save_successful_checkpoint(conn, run_started: datetime) -> None:
     conn.commit()
 
 
+def extract_feed_text(entry) -> str:
+    """Prefer a feed's substantive content:encoded/body over a short description."""
+    candidates = []
+    for item in entry.get("content", []) or []:
+        if isinstance(item, dict) and item.get("value"):
+            candidates.append(str(item["value"]))
+    for key in ("summary", "description"):
+        value = entry.get(key)
+        if value:
+            candidates.append(str(value))
+    cleaned = []
+    for value in candidates:
+        value = re.sub(r"<[^>]+>", " ", value)
+        value = re.sub(r"\\s+", " ", value).strip()
+        if value:
+            cleaned.append(value)
+    return max(cleaned, key=len, default="")[:12000]
+
+
 def process_feed(conn, source: dict, window_start: datetime, window_end: datetime) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries and source["name"] == "DW Persian":
@@ -330,9 +358,7 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
         except Exception:
             LOG.exception("Could not check duplicate status for %s", url)
             raise
-        content = (entry.get("summary") or entry.get("description") or "").strip()
-        content = re.sub(r"<[^>]+>", " ", content)
-        content = re.sub(r"\s+", " ", content)[:12000]
+        content = extract_feed_text(entry)
         attempted += 1
         try:
             result, provider, model = analyze(title, content, source["name"])
@@ -345,9 +371,9 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
                 cur.execute(
                     """INSERT INTO news_reports
                     (source_id, source_name, title, url, canonical_url, published_at, content,
-                     category, news_track, summary, importance, mission_relevance, freshness, source_quality,
+                     category, news_track, summary, detailed_report, importance, mission_relevance, freshness, source_quality,
                      total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
                     ON CONFLICT DO NOTHING RETURNING id""",
                     (
                         source["id"],
@@ -360,6 +386,7 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
                         result["category"],
                         result["news_track"],
                         result["summary"],
+                        result["detailed_report"],
                         result["importance"],
                         result["mission_relevance"],
                         result["freshness"],
