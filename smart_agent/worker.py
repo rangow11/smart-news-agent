@@ -171,6 +171,13 @@ DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = (
     "gemini-2.5-flash-lite",
     "gemini-2.5-flash",
     "gemini-3-flash",
+    # Lower-priority fallbacks: the operator's last AI Studio snapshot showed
+    # these models at or near their daily free-tier limits.
+    "gemini-3.5-flash-lite",
+    "gemini-3.6-flash",
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.5-flash",
 )
 DW_PERSIAN_FALLBACK_FEED_URL = "https://rss.dw.com/xml/rss-per-all_volltext"
 _ACTIVE_GEMINI_MODEL: str | None = None
