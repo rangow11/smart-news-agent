@@ -51,3 +51,25 @@ jobs:
           python -m compileall -q smart_agent
           python -c "from smart_agent.worker import CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"detailed_report\": \"گزارش تفصیلی با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
           python -m pytest -o addopts= -q --noconftest tests/test_smart_agent_worker.py
+
+  deploy-dashboard:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop/news-agent-mvp'
+    needs: [build, worker-smoke]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install
+      - name: Deploy dashboard to Cloudflare
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
