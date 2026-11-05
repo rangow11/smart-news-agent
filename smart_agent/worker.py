@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS news_reports (
     fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     content TEXT NOT NULL DEFAULT '',
     category TEXT,
+    news_track TEXT NOT NULL DEFAULT 'secondary',
     summary TEXT,
     importance INTEGER,
     mission_relevance INTEGER,
@@ -57,6 +58,7 @@ CREATE TABLE IF NOT EXISTS news_reports (
     review_note TEXT,
     reviewed_at TIMESTAMPTZ
 );
+ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS news_track TEXT NOT NULL DEFAULT 'secondary';
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_status TEXT NOT NULL DEFAULT 'جدید';
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS review_note TEXT;
 ALTER TABLE news_reports ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
@@ -91,8 +93,9 @@ SYSTEM_PROMPT = (
     + "، ".join(CATEGORIES)
     + """
 مهم: خبر مهم را فقط به دلیل اینکه دقیقاً در یکی از دسته‌های تکمیلی جا نمی‌گیرد، کم‌اهمیت تلقی نکن.
-خروجی فقط JSON معتبر با کلیدهای category, summary, importance,
+خروجی فقط JSON معتبر با کلیدهای news_track, category, summary, importance,
 mission_relevance, freshness, is_rumor باشد.
+news_track باید «main» برای خبرهای اصلی و راهبردیِ مرتبط با موضوعات اصلی، یا «secondary» برای خبرهای تکمیلی باشد.
 category دقیقاً یکی از دسته‌های تکمیلی بالا باشد؛ اگر خبر راهبردی است و دسته دقیقی ندارد،
 از «سایر و پیشنهادات» استفاده کن.
 summary خلاصه کوتاه، دقیق، بی‌طرفانه و فارسی باشد؛ انتساب ادعا به منبع را حفظ کن.
@@ -225,6 +228,8 @@ def validate_analysis(result: dict) -> dict:
     """Reject malformed or out-of-taxonomy model output before it reaches storage."""
     if not isinstance(result, dict):
         raise ValueError("AI response must be a JSON object")
+    if result.get("news_track") not in ("main", "secondary"):
+        raise ValueError("AI response contains an invalid news_track")
     if result.get("category") not in CATEGORIES:
         raise ValueError("AI response contains an unknown category")
     if not isinstance(result.get("summary"), str) or not result["summary"].strip():
@@ -340,9 +345,9 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
                 cur.execute(
                     """INSERT INTO news_reports
                     (source_id, source_name, title, url, canonical_url, published_at, content,
-                     category, summary, importance, mission_relevance, freshness, source_quality,
+                     category, news_track, summary, importance, mission_relevance, freshness, source_quality,
                      total_score, is_rumor, ai_provider, ai_model, ai_processed_at, raw_ai_json)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW(),%s::jsonb)
                     ON CONFLICT DO NOTHING RETURNING id""",
                     (
                         source["id"],
@@ -353,6 +358,7 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
                         published,
                         content,
                         result["category"],
+                        result["news_track"],
                         result["summary"],
                         result["importance"],
                         result["mission_relevance"],
