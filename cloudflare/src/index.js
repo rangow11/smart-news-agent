@@ -2,7 +2,7 @@ import { neon } from "@neondatabase/serverless";
 
 const STATUSES = ["جدید", "انتخاب‌شده", "ارسال‌شده", "منتشرشده", "ردشده", "ذخیره‌شده برای بررسی"];
 const CORS_HEADERS = {
-  "Access-Control-Allow-Methods": "GET, PATCH, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Cache-Control": "no-store",
 };
@@ -12,6 +12,42 @@ function json(data, status = 200) {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", ...CORS_HEADERS },
   });
+}
+
+
+function validFeedUrl(value) {
+  try {
+    const u = new URL(value);
+    if (u.protocol !== "https:" || u.username || u.password) return false;
+    const h = u.hostname.toLowerCase();
+    if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") ||
+        h === "metadata.google.internal" || h === "::1" || h.startsWith("fc") || h.startsWith("fe80:")) return false;
+    if (/^(10\\.|127\\.|169\\.254\\.|192\\.168\\.)/.test(h)) return false;
+    const m = h.match(/^172\\.(\\d+)\\./);
+    if (m && Number(m[1]) >= 16 && Number(m[1]) <= 31) return false;
+    return true;
+  } catch { return false; }
+}
+
+async function verifyFeedUrl(value) {
+  if (!validFeedUrl(value)) return { ok: false, error: "feed_url_must_be_public_https" };
+  try {
+    const response = await fetch(value, {
+      method: "GET",
+      redirect: "manual",
+      headers: { "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*" },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) return { ok: false, error: "feed_http_" + response.status };
+    const type = response.headers.get("content-type") || "";
+    const body = (await response.text()).slice(0, 1000000);
+    if (!/(<rss[\\s>]|<feed[\\s>]|<rdf:RDF[\\s>])/i.test(body)) {
+      return { ok: false, error: "not_valid_rss_or_atom" };
+    }
+    return { ok: true, content_type: type };
+  } catch (error) {
+    return { ok: false, error: "feed_check_failed" };
+  }
 }
 
 function authorized(request, env) {
@@ -33,6 +69,90 @@ export default {
       if (url.pathname === "/api/health" && request.method === "GET") {
         const rows = await sql`SELECT NOW() AS database_time`;
         return json({ ok: true, database_time: rows[0].database_time });
+      }
+
+
+      if (url.pathname === "/api/sources" && request.method === "GET") {
+        const sources = await sql`
+          SELECT id, name, feed_url, COALESCE(operator_enabled, enabled) AS enabled,
+                 COALESCE(operator_quality_override, source_quality) AS source_quality,
+                 language, region, last_checked_at, last_success_at, last_report_at, last_error
+          FROM news_sources ORDER BY name
+        `;
+        return json({ sources });
+      }
+
+      if (url.pathname === "/api/sources" && request.method === "POST") {
+        const body = await request.json();
+        const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
+        const feedUrl = typeof body.feed_url === "string" ? body.feed_url.trim() : "";
+        const language = ["fa", "en", "ar", "he", "other"].includes(body.language) ? body.language : "other";
+        const region = typeof body.region === "string" ? body.region.trim().slice(0, 80) : "";
+        const quality = Number(body.source_quality);
+        if (!name || !validFeedUrl(feedUrl) || !Number.isInteger(quality) || quality < 0 || quality > 100) {
+          return json({ error: "invalid_source_fields" }, 400);
+        }
+        const check = await verifyFeedUrl(feedUrl);
+        if (!check.ok) return json({ error: check.error }, 422);
+        const rows = await sql`
+          INSERT INTO news_sources (name, feed_url, enabled, source_quality, language, region)
+          VALUES (${name}, ${feedUrl}, TRUE, ${quality}, ${language}, ${region})
+          ON CONFLICT (feed_url) DO UPDATE
+          SET name = EXCLUDED.name, language = EXCLUDED.language, region = EXCLUDED.region,
+              source_quality = EXCLUDED.source_quality
+          RETURNING id, name, feed_url, enabled, source_quality, language, region
+        `;
+        return json({ source: rows[0] }, 201);
+      }
+
+      if (url.pathname === "/api/notifications" && request.method === "GET") {
+        const rows = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'ntfy_topic'`;
+        return json({ configured: Boolean(rows[0]?.setting_value), topic: rows[0]?.setting_value || null });
+      }
+      if (url.pathname === "/api/notifications" && request.method === "POST") {
+        const body = await request.json();
+        const topic = typeof body.topic === "string" ? body.topic.trim() : "";
+        if (!/^[A-Za-z0-9_-]{8,64}$/.test(topic)) return json({ error: "invalid_notification_topic" }, 400);
+        await sql`
+          INSERT INTO agent_settings (setting_key, setting_value)
+          VALUES ('ntfy_topic', ${topic})
+          ON CONFLICT (setting_key) DO UPDATE
+          SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+        `;
+        return json({ configured: true, topic });
+      }
+
+      const sourceMatch = url.pathname.match(/^\\/api\\/sources\\/(\\d+)$/);
+      if (sourceMatch && request.method === "PATCH") {
+        const id = Number(sourceMatch[1]);
+        const body = await request.json();
+        const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : null;
+        const language = ["fa", "en", "ar", "he", "other"].includes(body.language) ? body.language : null;
+        const region = typeof body.region === "string" ? body.region.trim().slice(0, 80) : null;
+        const enabled = typeof body.enabled === "boolean" ? body.enabled : null;
+        const quality = Number.isInteger(body.source_quality) && body.source_quality >= 0 && body.source_quality <= 100
+          ? body.source_quality : null;
+        const feedUrl = typeof body.feed_url === "string" ? body.feed_url.trim() : null;
+        if (feedUrl && !validFeedUrl(feedUrl)) return json({ error: "invalid_feed_url" }, 400);
+        if (feedUrl) {
+          const check = await verifyFeedUrl(feedUrl);
+          if (!check.ok) return json({ error: check.error }, 422);
+        }
+        const rows = await sql`
+          UPDATE news_sources SET
+            name = COALESCE(${name}, name),
+            language = COALESCE(${language}, language),
+            region = COALESCE(${region}, region),
+            operator_enabled = COALESCE(${enabled}, operator_enabled),
+            operator_quality_override = COALESCE(${quality}, operator_quality_override),
+            feed_url = COALESCE(${feedUrl}, feed_url)
+          WHERE id = ${id}
+          RETURNING id, name, feed_url, COALESCE(operator_enabled, enabled) AS enabled,
+                    COALESCE(operator_quality_override, source_quality) AS source_quality,
+                    language, region
+        `;
+        if (!rows.length) return json({ error: "source_not_found" }, 404);
+        return json({ source: rows[0] });
       }
 
       if (url.pathname === "/api/stats" && request.method === "GET") {
