@@ -7,6 +7,27 @@ const CORS_HEADERS = {
   "Cache-Control": "no-store",
 };
 
+function tehranClock(timestamp) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tehran",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+  const get = (type) => Number(parts.find((part) => part.type === type)?.value || 0);
+  return { hour: get("hour"), minute: get("minute") };
+}
+
+function shouldDispatchCollection(timestamp) {
+  const { hour, minute } = tehranClock(timestamp);
+  // Cloudflare ticks every 30 minutes. During 06:00-14:00 Tehran, use both ticks;
+  // during 14:00-23:00 use only the top of each hour; remain idle overnight.
+  if (minute !== 0 && minute !== 30) return false;
+  if (hour < 6 || hour >= 23) return false;
+  if (hour >= 14 && minute !== 0) return false;
+  return true;
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -73,6 +94,13 @@ async function verifyFeedUrl(value) {
 
 export default {
   async scheduled(controller, env, ctx) {
+    const scheduledAt = Number.isFinite(controller?.scheduledTime) ? controller.scheduledTime : Date.now();
+    const local = tehranClock(scheduledAt);
+    if (!shouldDispatchCollection(scheduledAt)) {
+      console.log(`Scheduled collection skipped at Tehran ${String(local.hour).padStart(2, "0")}:${String(local.minute).padStart(2, "0")}`);
+      return;
+    }
+    console.log(`Scheduled collection allowed at Tehran ${String(local.hour).padStart(2, "0")}:${String(local.minute).padStart(2, "0")}`);
     if (!env.GITHUB_ACTIONS_TOKEN) {
       console.error("GITHUB_ACTIONS_TOKEN is not configured; scheduled dispatch skipped");
       return;
