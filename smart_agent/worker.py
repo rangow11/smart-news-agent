@@ -12,7 +12,7 @@ import logging
 import os
 import re
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
@@ -63,6 +63,11 @@ CREATE INDEX IF NOT EXISTS idx_news_reports_score_time
     ON news_reports(total_score DESC, fetched_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_reports_published
     ON news_reports(published_at DESC);
+CREATE TABLE IF NOT EXISTS agent_state (
+    state_key TEXT PRIMARY KEY,
+    state_value TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 """
 
 CATEGORIES = [
@@ -243,15 +248,66 @@ def report_exists(conn, url: str, canonical_url: str) -> bool:
         return cur.fetchone() is not None
 
 
-def process_feed(conn, source: dict) -> int:
+def entry_published_at(entry) -> datetime | None:
+    """Return the RSS publication/update time normalized to UTC."""
+    parsed = entry.get("published_parsed") or entry.get("updated_parsed")
+    if not parsed:
+        return None
+    try:
+        return datetime(*parsed[:6], tzinfo=UTC)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
+def collection_window(conn, run_started: datetime) -> tuple[datetime, datetime]:
+    """Use the previous successful run as checkpoint, with a small overlap."""
+    row = conn.execute(
+        "SELECT state_value FROM agent_state WHERE state_key = %s",
+        ("last_successful_run",),
+    ).fetchone()
+    if row:
+        previous = row["state_value"] if isinstance(row, dict) else row[0]
+        overlap = max(0, int(os.getenv("WINDOW_OVERLAP_MINUTES", "5")))
+        start = previous - timedelta(minutes=overlap)
+    else:
+        lookback = max(1, int(os.getenv("INITIAL_LOOKBACK_MINUTES", "30")))
+        start = run_started - timedelta(minutes=lookback)
+    return start, run_started
+
+
+def save_successful_checkpoint(conn, run_started: datetime) -> None:
+    conn.execute(
+        """INSERT INTO agent_state (state_key, state_value)
+           VALUES (%s, %s)
+           ON CONFLICT (state_key) DO UPDATE
+           SET state_value = EXCLUDED.state_value, updated_at = NOW()""",
+        ("last_successful_run", run_started),
+    )
+    conn.commit()
+
+
+def process_feed(conn, source: dict, window_start: datetime, window_end: datetime) -> int:
     parsed = feedparser.parse(source["feed_url"])
     if parsed.bozo and not parsed.entries:
         raise RuntimeError(f"RSS parse failed for {source['name']}: {parsed.bozo_exception}")
     inserted = 0
     attempted = 0
     failed_reports = 0
-    max_articles = max(1, int(os.getenv("MAX_ARTICLES_PER_FEED", "8")))
-    for entry in parsed.entries[:max_articles]:
+    eligible_entries = []
+    missing_dates = 0
+    for entry in parsed.entries:
+        published_at = entry_published_at(entry)
+        if published_at is None:
+            missing_dates += 1
+            continue
+        if window_start <= published_at <= window_end:
+            eligible_entries.append(entry)
+    LOG.info(
+        "%s: %d entries in window %s..%s (%d without publication date skipped)",
+        source["name"], len(eligible_entries), window_start.isoformat(),
+        window_end.isoformat(), missing_dates,
+    )
+    for entry in eligible_entries:
         title = (entry.get("title") or "").strip()
         url = (entry.get("link") or "").strip()
         if not title or not url:
@@ -359,11 +415,14 @@ def main() -> int:
         sources = conn.execute(
             "SELECT id, name, feed_url, source_quality FROM news_sources WHERE enabled = TRUE ORDER BY id"
         ).fetchall()
+        run_started = datetime.now(UTC)
+        window_start, window_end = collection_window(conn, run_started)
+        LOG.info("Collection window: %s .. %s", window_start.isoformat(), window_end.isoformat())
         total = 0
         failed_sources = 0
         for source in sources:
             try:
-                count = process_feed(conn, source)
+                count = process_feed(conn, source, window_start, window_end)
                 LOG.info("%s: %d new reports", source["name"], count)
                 total += count
             except Exception:
@@ -375,8 +434,12 @@ def main() -> int:
             len(sources),
             failed_sources,
         )
-        if sources and failed_sources == len(sources):
-            raise RuntimeError("All configured RSS sources failed")
+        if failed_sources:
+            raise RuntimeError(
+                f"{failed_sources} of {len(sources)} RSS sources failed; checkpoint was not advanced"
+            )
+        save_successful_checkpoint(conn, run_started)
+        LOG.info("Successful collection checkpoint saved: %s", run_started.isoformat())
     return 0
 
 
