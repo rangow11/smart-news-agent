@@ -40,6 +40,7 @@ async function ensureSourceSchema(sql) {
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_error TEXT`;
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_enabled BOOLEAN`;
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_quality_override SMALLINT`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS telegram_parser_version SMALLINT NOT NULL DEFAULT 0`;
 }
 async function ensureNotificationSchema(sql) {
   await sql`CREATE TABLE IF NOT EXISTS agent_settings (
