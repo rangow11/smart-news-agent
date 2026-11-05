@@ -2,226 +2,316 @@
   {
     "name": "BBC Arabic",
     "feed_url": "https://feeds.bbci.co.uk/arabic/rss.xml",
-    "source_quality": 85
+    "source_quality": 85,
+    "language": "ar",
+    "region": "INT"
   },
   {
     "name": "Al Jazeera Arabic",
     "feed_url": "https://www.aljazeera.net/rss",
-    "source_quality": 80
+    "source_quality": 80,
+    "language": "ar",
+    "region": "INT"
   },
   {
     "name": "Ynet Hebrew",
     "feed_url": "https://www.ynet.co.il/Integration/StoryRss2.xml",
-    "source_quality": 75
+    "source_quality": 75,
+    "language": "he",
+    "region": "IL"
   },
   {
     "name": "Maariv Hebrew",
     "feed_url": "https://www.maariv.co.il/Rss/RssFeedsMivzakiChadashot",
-    "source_quality": 75
+    "source_quality": 75,
+    "language": "he",
+    "region": "IL"
   },
   {
     "name": "The Times of Israel",
     "feed_url": "https://www.timesofisrael.com/feed/",
-    "source_quality": 80
+    "source_quality": 80,
+    "language": "en",
+    "region": "IL"
   },
   {
     "name": "The Jerusalem Post Israel News",
     "feed_url": "https://www.jpost.com/rss/rssfeedsisraelnews.aspx",
-    "source_quality": 75
+    "source_quality": 75,
+    "language": "en",
+    "region": "IL"
   },
   {
     "name": "Haaretz Israel News",
     "feed_url": "https://www.haaretz.com/srv/israel-news-rss",
-    "source_quality": 80
+    "source_quality": 80,
+    "language": "en",
+    "region": "IL"
   },
   {
     "name": "Iran International",
     "feed_url": "https://www.iranintl.com/feed",
-    "source_quality": 80
+    "source_quality": 80,
+    "language": "en",
+    "region": "IR"
   },
   {
     "name": "Axios Top Stories",
     "feed_url": "https://api.axios.com/feed/top/",
-    "source_quality": 85
+    "source_quality": 85,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "The New York Times - Middle East",
     "feed_url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml",
-    "source_quality": 90
+    "source_quality": 90,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "IRIB News - Provincial Centers and National",
     "feed_url": "https://www.irib-news.ir/fa/rss/allnews?",
-    "source_quality": 75
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
   },
   {
     "name": "Fars News (Google News RSS aggregation)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Afarsnews.ir&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "fa",
+    "region": "IR"
   },
   {
     "name": "Channel 13 Israel (Google News RSS aggregation)",
     "feed_url": "https://news.google.com/rss/search?q=site%3A13tv.co.il%2Fnews&hl=he&gl=IL&ceid=IL%3Ahe",
-    "source_quality": 70
+    "source_quality": 70,
+    "language": "en",
+    "region": "IL"
   },
   {
     "name": "Clash Report (Google News RSS aggregation)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Aclashreport.com&hl=en-US&gl=US&ceid=US%3Aen",
-    "source_quality": 70
+    "source_quality": 70,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی آذربایجان شرقی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%B4%D8%B1%D9%82%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی آذربایجان غربی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%BA%D8%B1%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی اردبیل (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A7%D8%B1%D8%AF%D8%A8%DB%8C%D9%84%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی اصفهان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی البرز (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A7%D9%84%D8%A8%D8%B1%D8%B2%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی ایلام (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A7%DB%8C%D9%84%D8%A7%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی بوشهر (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%A8%D9%88%D8%B4%D9%87%D8%B1%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی تهران (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%AA%D9%87%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی چهارمحال و بختیاری (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%86%D9%87%D8%A7%D8%B1%D9%85%D8%AD%D8%A7%D9%84%20%D9%88%20%D8%A8%D8%AE%D8%AA%DB%8C%D8%A7%D8%B1%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی خراسان جنوبی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی خراسان رضوی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B1%D8%B6%D9%88%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی خراسان شمالی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B4%D9%85%D8%A7%D9%84%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی خوزستان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%AE%D9%88%D8%B2%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی زنجان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%B2%D9%86%D8%AC%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی سمنان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%B3%D9%85%D9%86%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی سیستان و بلوچستان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D8%B3%DB%8C%D8%B3%D8%AA%D8%A7%D9%86%20%D9%88%20%D8%A8%D9%84%D9%88%DA%86%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی فارس (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%81%D8%A7%D8%B1%D8%B3%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی قزوین (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%82%D8%B2%D9%88%DB%8C%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی قم (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%82%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی کردستان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%A9%D8%B1%D8%AF%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی کرمان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%A9%D8%B1%D9%85%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی کرمانشاه (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%A9%D8%B1%D9%85%D8%A7%D9%86%D8%B4%D8%A7%D9%87%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی کهگیلویه و بویراحمد (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%A9%D9%87%DA%AF%DB%8C%D9%84%D9%88%DB%8C%D9%87%20%D9%88%20%D8%A8%D9%88%DB%8C%D8%B1%D8%A7%D8%AD%D9%85%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی گلستان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%AF%D9%84%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی گیلان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DA%AF%DB%8C%D9%84%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی لرستان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%84%D8%B1%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی مازندران (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%85%D8%A7%D8%B2%D9%86%D8%AF%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی مرکزی (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%85%D8%B1%DA%A9%D8%B2%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی هرمزگان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%87%D8%B1%D9%85%D8%B2%DA%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی همدان (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%D9%87%D9%85%D8%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   },
   {
     "name": "پایش شبکه استانی یزد (تجمیع Google News)",
     "feed_url": "https://news.google.com/rss/search?q=site%3Airibnews.ir%20%22%D8%B5%D8%AF%D8%A7%20%D9%88%20%D8%B3%DB%8C%D9%85%D8%A7%DB%8C%20%D9%85%D8%B1%DA%A9%D8%B2%20%DB%8C%D8%B2%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
-    "source_quality": 65
+    "source_quality": 65,
+    "language": "en",
+    "region": "INT"
   }
 ]
