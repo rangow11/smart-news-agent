@@ -127,7 +127,7 @@
   },
   {
     "name": "شبکه استانی البرز - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/IRIB_Alborz",
+    "feed_url": "https://alborz.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -155,7 +155,7 @@
   },
   {
     "name": "شبکه استانی چهارمحال و بختیاری - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/chbIRIBnews",
+    "feed_url": "https://chb.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -190,7 +190,7 @@
   },
   {
     "name": "شبکه استانی زنجان - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/IRIBnewsZanjan",
+    "feed_url": "https://zanjan.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -239,7 +239,7 @@
   },
   {
     "name": "شبکه استانی کرمان - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/KermanNewsTV",
+    "feed_url": "https://kerman.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -253,7 +253,7 @@
   },
   {
     "name": "شبکه استانی کهگیلویه و بویراحمد - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/IRIBnews_Dena",
+    "feed_url": "https://dena.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -267,14 +267,14 @@
   },
   {
     "name": "شبکه استانی گیلان - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/IRIBnews_Guilan",
+    "feed_url": "https://guilan.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "شبکه استانی لرستان - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/IRIBnewsLorestan",
+    "feed_url": "https://lorestan.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -302,7 +302,7 @@
   },
   {
     "name": "شبکه استانی همدان - خبرگزاری صداوسیما",
-    "feed_url": "https://t.me/s/Khabar_Hamedan",
+    "feed_url": "https://hamedan.iribnews.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
