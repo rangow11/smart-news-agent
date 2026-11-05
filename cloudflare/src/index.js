@@ -29,6 +29,21 @@ function validFeedUrl(value) {
   } catch { return false; }
 }
 
+async function ensureSourceSchema(sql) {
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT 'unknown'`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS region TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_success_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_report_at TIMESTAMPTZ`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_error TEXT`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_enabled BOOLEAN`;
+  await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_quality_override SMALLINT`;
+}
+async function ensureNotificationSchema(sql) {
+  await sql`CREATE TABLE IF NOT EXISTS agent_settings (
+    setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+}
 async function verifyFeedUrl(value) {
   if (!validFeedUrl(value)) return { ok: false, error: "feed_url_must_be_public_https" };
   try {
@@ -73,6 +88,7 @@ export default {
 
 
       if (url.pathname === "/api/sources" && request.method === "GET") {
+        await ensureSourceSchema(sql);
         const sources = await sql`
           SELECT id, name, feed_url, COALESCE(operator_enabled, enabled) AS enabled,
                  COALESCE(operator_quality_override, source_quality) AS source_quality,
@@ -83,6 +99,7 @@ export default {
       }
 
       if (url.pathname === "/api/sources" && request.method === "POST") {
+        await ensureSourceSchema(sql);
         const body = await request.json();
         const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : "";
         const feedUrl = typeof body.feed_url === "string" ? body.feed_url.trim() : "";
@@ -106,10 +123,12 @@ export default {
       }
 
       if (url.pathname === "/api/notifications" && request.method === "GET") {
+        await ensureNotificationSchema(sql);
         const rows = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'ntfy_topic'`;
         return json({ configured: Boolean(rows[0]?.setting_value), topic: rows[0]?.setting_value || null });
       }
       if (url.pathname === "/api/notifications" && request.method === "POST") {
+        await ensureNotificationSchema(sql);
         const body = await request.json();
         const topic = typeof body.topic === "string" ? body.topic.trim() : "";
         if (!/^[A-Za-z0-9_-]{8,64}$/.test(topic)) return json({ error: "invalid_notification_topic" }, 400);
@@ -122,8 +141,9 @@ export default {
         return json({ configured: true, topic });
       }
 
-      const sourceMatch = url.pathname.match(/^\\/api\\/sources\\/(\\d+)$/);
+      const sourceMatch = url.pathname.match(/^\/api\/sources\/(\d+)$/);
       if (sourceMatch && request.method === "PATCH") {
+        await ensureSourceSchema(sql);
         const id = Number(sourceMatch[1]);
         const body = await request.json();
         const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) : null;
