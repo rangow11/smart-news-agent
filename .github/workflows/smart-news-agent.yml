@@ -1,6 +1,11 @@
 name: Smart News Agent
 
 on:
+  push:
+    branches: [develop/news-agent-mvp]
+    paths:
+      - "smart_agent/**"
+      - ".github/workflows/smart-news-agent.yml"
   workflow_dispatch:
   schedule:
     - cron: "*/30 * * * *"
