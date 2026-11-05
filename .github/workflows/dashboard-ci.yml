@@ -78,8 +78,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Configure GitHub Actions dispatch token on Worker
-        if: env.GH_WORKFLOW_TOKEN != ''
-        run: printf '%s' "$GH_WORKFLOW_TOKEN" | npx wrangler secret put GITHUB_ACTIONS_TOKEN
+        run: |
+          if [ -z "$GH_WORKFLOW_TOKEN" ]; then
+            echo "GH_WORKFLOW_TOKEN is not configured; token setup skipped."
+            exit 0
+          fi
+          printf '%s' "$GH_WORKFLOW_TOKEN" | npx wrangler secret put GITHUB_ACTIONS_TOKEN
         env:
           GH_WORKFLOW_TOKEN: ${{ secrets.GH_WORKFLOW_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
