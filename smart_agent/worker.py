@@ -250,7 +250,8 @@ def process_feed(conn, source: dict) -> int:
     inserted = 0
     attempted = 0
     failed_reports = 0
-    for entry in parsed.entries[:100]:
+    max_articles = max(1, int(os.getenv("MAX_ARTICLES_PER_FEED", "8")))
+    for entry in parsed.entries[:max_articles]:
         title = (entry.get("title") or "").strip()
         url = (entry.get("link") or "").strip()
         if not title or not url:
