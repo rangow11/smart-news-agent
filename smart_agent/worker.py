@@ -232,12 +232,12 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     last_error: Exception | None = None
     for index, model in enumerate(chain):
         try:
-            result = gemini_analyze(title, content, source, model=model)
+            result, provider, actual_model = gemini_analyze(title, content, source, model=model)
             result = validate_analysis(result)
             _ACTIVE_GEMINI_MODEL = model
             if index:
                 LOG.warning("Gemini fallback model selected for this run: %s", model)
-            return result
+            return result, provider, actual_model
         except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
             last_error = exc
             if not _should_try_next_gemini(exc) or index == len(chain) - 1:
