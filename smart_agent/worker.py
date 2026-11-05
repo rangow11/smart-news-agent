@@ -770,8 +770,15 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
     count = count_row[0] if not isinstance(count_row, dict) else next(iter(count_row.values()))
     if not count:
         return
-    lines = [f"{r['title']} | {r['source_name']} | امتیاز {r['total_score']}" for r in reports]
-    body = f"{count} خبر مهم با امتیاز ۸۵ یا بالاتر شناسایی شد.\n\n" + "\n".join(lines)
+    lines = [
+        f"{index}. {r['title']}\nمنبع: {r['source_name']} | امتیاز: {r['total_score']}\n{r['url']}"
+        for index, r in enumerate(reports, start=1)
+    ]
+    body = (
+        f"{count} خبر مهم با امتیاز ۸۵ یا بالاتر شناسایی شد. "
+        f"فهرست زیر حداکثر ۵ خبر برتر را نشان می‌دهد.\n\n"
+        + "\n\n".join(lines)
+    )
     request = Request(
         f"https://ntfy.sh/{quote(topic, safe='')}",
         data=body.encode("utf-8"),
