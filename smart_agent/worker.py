@@ -82,6 +82,9 @@ with POLICY_PATH.open("r", encoding="utf-8") as policy_file:
 CATEGORIES = NEWS_POLICY["secondary_stream"]["categories"]
 PRIMARY_TOPICS = NEWS_POLICY["primary_stream"]["topics"]
 SCORING_WEIGHTS = NEWS_POLICY["scoring"]["weights"]
+ADDITIONAL_SOURCES_PATH = Path(__file__).with_name("additional_news_sources.json")
+with ADDITIONAL_SOURCES_PATH.open("r", encoding="utf-8") as sources_file:
+    ADDITIONAL_NEWS_SOURCES = json.load(sources_file)
 
 SYSTEM_PROMPT = (
     """تو دستیار رصد و اولویت‌بندی اخبار عمومی هستی؛ خبرنگار یا تولیدکننده خبر نیستی.
@@ -414,15 +417,18 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
 
 def configure_sources(conn) -> None:
     """Upsert public RSS sources supplied as a JSON GitHub Actions variable."""
-    raw = os.getenv("NEWS_SOURCES_JSON", "").strip() or "[]"
+    raw = os.getenv("NEWS_SOURCES_JSON", "").strip()
     try:
-        sources = json.loads(raw)
+        configured_sources = json.loads(raw) if raw else []
+        sources = [*ADDITIONAL_NEWS_SOURCES, *configured_sources]
     except json.JSONDecodeError as exc:
         raise ValueError("NEWS_SOURCES_JSON must be a JSON array") from exc
     if not isinstance(sources, list):
         raise ValueError("NEWS_SOURCES_JSON must be a JSON array")
-    if not sources:
+    if raw and not configured_sources:
         raise ValueError("NEWS_SOURCES_JSON has no feeds configured")
+    if not sources:
+        raise ValueError("No news feeds are configured")
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
