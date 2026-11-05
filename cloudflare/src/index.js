@@ -18,12 +18,26 @@ function tehranClock(timestamp) {
   return { hour: get("hour"), minute: get("minute") };
 }
 
-function shouldDispatchCollection(timestamp) {
+async function shouldDispatchCollection(timestamp, env) {
   const { hour, minute } = tehranClock(timestamp);
-  // Cloudflare ticks every 30 minutes. During 06:00-14:00 Tehran, use both ticks;
-  // during 14:00-23:00 use only the top of each hour; remain idle overnight.
-  if (minute !== 0 && minute !== 30) return false;
   if (hour < 6 || hour >= 23) return false;
+
+  let interval = 30;
+  if (env.DATABASE_URL) {
+    const sql = neon(env.DATABASE_URL);
+    const rows = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'run_interval_minutes'`;
+    interval = Number(rows[0]?.setting_value || 30);
+  }
+
+  // 30 means the requested smart schedule. Any other saved value activates
+  // a temporary interval override (useful for 5-minute smoke tests).
+  if (interval !== 30) {
+    const minutesSince0600 = (hour - 6) * 60 + minute;
+    return minutesSince0600 % interval === 0;
+  }
+
+  // Smart schedule: 06:00-14:00 every 30 minutes; 14:00-23:00 hourly.
+  if (minute !== 0 && minute !== 30) return false;
   if (hour >= 14 && minute !== 0) return false;
   return true;
 }
@@ -96,7 +110,7 @@ export default {
   async scheduled(controller, env, ctx) {
     const scheduledAt = Number.isFinite(controller?.scheduledTime) ? controller.scheduledTime : Date.now();
     const local = tehranClock(scheduledAt);
-    if (!shouldDispatchCollection(scheduledAt)) {
+    if (!(await shouldDispatchCollection(scheduledAt, env))) {
       console.log(`Scheduled collection skipped at Tehran ${String(local.hour).padStart(2, "0")}:${String(local.minute).padStart(2, "0")}`);
       return;
     }
