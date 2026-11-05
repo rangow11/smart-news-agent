@@ -202,6 +202,36 @@ export default {
         `;
         return json({ configured: true, topic });
       }
+      if (url.pathname === "/api/notifications/test" && request.method === "POST") {
+        await ensureNotificationSchema(sql);
+        const rows = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'ntfy_topic'`;
+        const topic = rows[0]?.setting_value || "";
+        if (!/^[A-Za-z0-9_-]{8,64}$/.test(topic)) return json({ error: "notification_topic_not_configured" }, 409);
+        const previous = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'ntfy_test_last_sent_at'`;
+        const lastSent = previous[0]?.setting_value ? Date.parse(previous[0].setting_value) : 0;
+        if (Number.isFinite(lastSent) && Date.now() - lastSent < 30000) {
+          return json({ error: "notification_test_rate_limited", retry_after_seconds: Math.ceil((30000 - (Date.now() - lastSent)) / 1000) }, 429);
+        }
+        const response = await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Title": "تست اتصال عامل خبری",
+            "Priority": "high",
+            "Tags": "white_check_mark,phone",
+          },
+          body: "این یک اعلان آزمایشی است. اگر این پیام را روی گوشی دریافت کردی، اتصال عامل خبری به ntfy و اشتراک این دستگاه درست کار می‌کند.",
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!response.ok) return json({ error: "ntfy_delivery_failed", upstream_status: response.status }, 502);
+        await sql`
+          INSERT INTO agent_settings (setting_key, setting_value)
+          VALUES ('ntfy_test_last_sent_at', ${new Date().toISOString()})
+          ON CONFLICT (setting_key) DO UPDATE
+          SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+        `;
+        return json({ sent: true, topic });
+      }
 
       if (url.pathname === "/api/settings" && request.method === "GET") {
         await ensureNotificationSchema(sql);
