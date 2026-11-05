@@ -28,8 +28,8 @@
     "region": "IL"
   },
   {
-    "name": "The Times of Israel",
-    "feed_url": "https://www.timesofisrael.com/feed/",
+    "name": "The Times of Israel (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Atimesofisrael.com&hl=en-US&gl=US&ceid=US:en",
     "source_quality": 80,
     "language": "en",
     "region": "IL"
@@ -70,7 +70,7 @@
     "region": "INT"
   },
   {
-    "name": "IRIB News - Provincial Centers and National",
+    "name": "IRIB News (National RSS)",
     "feed_url": "https://www.irib-news.ir/fa/rss/allnews?",
     "source_quality": 75,
     "language": "fa",
@@ -87,7 +87,7 @@
     "name": "Channel 13 Israel (Google News RSS aggregation)",
     "feed_url": "https://news.google.com/rss/search?q=site%3A13tv.co.il%2Fnews&hl=he&gl=IL&ceid=IL%3Ahe",
     "source_quality": 70,
-    "language": "en",
+    "language": "he",
     "region": "IL"
   },
   {
@@ -99,217 +99,217 @@
   },
   {
     "name": "پایش اخبار استان آذربایجان شرقی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%B4%D8%B1%D9%82%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%B4%D8%B1%D9%82%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان آذربایجان غربی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%BA%D8%B1%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A2%D8%B0%D8%B1%D8%A8%D8%A7%DB%8C%D8%AC%D8%A7%D9%86%20%D8%BA%D8%B1%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان اردبیل - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A7%D8%B1%D8%AF%D8%A8%DB%8C%D9%84%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A7%D8%B1%D8%AF%D8%A8%DB%8C%D9%84%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان اصفهان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان البرز - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A7%D9%84%D8%A8%D8%B1%D8%B2%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A7%D9%84%D8%A8%D8%B1%D8%B2%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان ایلام - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A7%DB%8C%D9%84%D8%A7%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A7%DB%8C%D9%84%D8%A7%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان بوشهر - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%A8%D9%88%D8%B4%D9%87%D8%B1%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%A8%D9%88%D8%B4%D9%87%D8%B1%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان تهران - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%AA%D9%87%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%AA%D9%87%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان چهارمحال و بختیاری - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%86%D9%87%D8%A7%D8%B1%D9%85%D8%AD%D8%A7%D9%84%20%D9%88%20%D8%A8%D8%AE%D8%AA%DB%8C%D8%A7%D8%B1%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%86%D9%87%D8%A7%D8%B1%D9%85%D8%AD%D8%A7%D9%84%20%D9%88%20%D8%A8%D8%AE%D8%AA%DB%8C%D8%A7%D8%B1%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان خراسان جنوبی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%AC%D9%86%D9%88%D8%A8%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان خراسان رضوی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B1%D8%B6%D9%88%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B1%D8%B6%D9%88%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان خراسان شمالی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B4%D9%85%D8%A7%D9%84%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%AE%D8%B1%D8%A7%D8%B3%D8%A7%D9%86%20%D8%B4%D9%85%D8%A7%D9%84%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان خوزستان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%AE%D9%88%D8%B2%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%AE%D9%88%D8%B2%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان زنجان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%B2%D9%86%D8%AC%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%B2%D9%86%D8%AC%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان سمنان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%B3%D9%85%D9%86%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%B3%D9%85%D9%86%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان سیستان و بلوچستان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D8%B3%DB%8C%D8%B3%D8%AA%D8%A7%D9%86%20%D9%88%20%D8%A8%D9%84%D9%88%DA%86%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D8%B3%DB%8C%D8%B3%D8%AA%D8%A7%D9%86%20%D9%88%20%D8%A8%D9%84%D9%88%DA%86%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان فارس - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%81%D8%A7%D8%B1%D8%B3%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%81%D8%A7%D8%B1%D8%B3%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان قزوین - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%82%D8%B2%D9%88%DB%8C%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%82%D8%B2%D9%88%DB%8C%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان قم - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%82%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%82%D9%85%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان کردستان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%A9%D8%B1%D8%AF%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%A9%D8%B1%D8%AF%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان کرمان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان کرمانشاه - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%D8%B4%D8%A7%D9%87%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%D8%B4%D8%A7%D9%87%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان کهگیلویه و بویراحمد - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%A9%D9%87%DA%AF%DB%8C%D9%84%D9%88%DB%8C%D9%87%20%D9%88%20%D8%A8%D9%88%DB%8C%D8%B1%D8%A7%D8%AD%D9%85%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%A9%D9%87%DA%AF%DB%8C%D9%84%D9%88%DB%8C%D9%87%20%D9%88%20%D8%A8%D9%88%DB%8C%D8%B1%D8%A7%D8%AD%D9%85%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان گلستان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%AF%D9%84%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%AF%D9%84%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان گیلان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DA%AF%DB%8C%D9%84%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DA%AF%DB%8C%D9%84%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان لرستان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%84%D8%B1%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%84%D8%B1%D8%B3%D8%AA%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان مازندران - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%85%D8%A7%D8%B2%D9%86%D8%AF%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%85%D8%A7%D8%B2%D9%86%D8%AF%D8%B1%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان مرکزی - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%85%D8%B1%DA%A9%D8%B2%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%85%D8%B1%DA%A9%D8%B2%DB%8C%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان هرمزگان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%87%D8%B1%D9%85%D8%B2%DA%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%87%D8%B1%D9%85%D8%B2%DA%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان همدان - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%D9%87%D9%85%D8%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%D9%87%D9%85%D8%AF%D8%A7%D9%86%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
   {
     "name": "پایش اخبار استان یزد - صداوسیما",
-    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%2Ffa%2Fnews%20%22%DB%8C%D8%B2%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Airib-news.ir%20%22%DB%8C%D8%B2%D8%AF%22&hl=fa&gl=IR&ceid=IR%3Afa",
     "source_quality": 65,
     "language": "fa",
     "region": "IR"
