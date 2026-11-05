@@ -747,7 +747,7 @@ def configure_sources(conn) -> None:
 
 
 def send_ntfy_digest(conn, run_started: datetime) -> None:
-    """Send one compact push notification for each successful run with new reports."""
+    """Send a push notification only when this run contains high-priority reports (score >= 85)."""
     row = conn.execute(
         "SELECT setting_value FROM agent_settings WHERE setting_key = %s",
         ("ntfy_topic",),
@@ -757,27 +757,29 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
         return
     reports = conn.execute(
         """SELECT title, source_name, url, total_score
-           FROM news_reports WHERE fetched_at >= %s
+           FROM news_reports
+           WHERE fetched_at >= %s AND total_score >= 85
            ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST
            LIMIT 5""",
         (run_started,),
     ).fetchall()
     count_row = conn.execute(
-        "SELECT COUNT(*) FROM news_reports WHERE fetched_at >= %s",
+        "SELECT COUNT(*) FROM news_reports WHERE fetched_at >= %s AND total_score >= 85",
         (run_started,),
     ).fetchone()
     count = count_row[0] if not isinstance(count_row, dict) else next(iter(count_row.values()))
     if not count:
         return
     lines = [f"{r['title']} | {r['source_name']} | امتیاز {r['total_score']}" for r in reports]
-    body = f"{count} خبر تازه دریافت شد.\n\n" + "\n".join(lines)
+    body = f"{count} خبر مهم با امتیاز ۸۵ یا بالاتر شناسایی شد.\n\n" + "\n".join(lines)
     request = Request(
         f"https://ntfy.sh/{quote(topic, safe='')}",
         data=body.encode("utf-8"),
         headers={
             "Content-Type": "text/plain; charset=utf-8",
-            "Title": f"عامل خبری هوشمند | {count} خبر تازه",
-            "Priority": "default",
+            "Title": f"هشدار خبری مهم | {count} خبر",
+            "Priority": "high",
+            "Tags": "warning,rotating_light",
             "Click": "https://smart-news-agent-dashboard.smartnews1.workers.dev",
         },
         method="POST",
