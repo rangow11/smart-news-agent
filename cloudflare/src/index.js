@@ -35,6 +35,34 @@ export default {
         return json({ ok: true, database_time: rows[0].database_time });
       }
 
+      if (url.pathname === "/api/stats" && request.method === "GET") {
+        const totals = await sql`
+          SELECT COUNT(*)::int AS total,
+                 COUNT(*) FILTER (WHERE fetched_at >= NOW() - INTERVAL '24 hours')::int AS last_24h,
+                 COUNT(*) FILTER (WHERE total_score >= 65)::int AS priority_65,
+                 COUNT(*) FILTER (WHERE total_score >= 85)::int AS priority_85,
+                 COUNT(*) FILTER (WHERE is_rumor)::int AS rumors,
+                 MAX(fetched_at) AS latest_report
+          FROM news_reports
+        `;
+        const categories = await sql`
+          SELECT category, COUNT(*)::int AS count
+          FROM news_reports GROUP BY category ORDER BY count DESC, category
+        `;
+        const statuses = await sql`
+          SELECT review_status AS status, COUNT(*)::int AS count
+          FROM news_reports GROUP BY review_status ORDER BY count DESC, status
+        `;
+        const checkpoint = await sql`
+          SELECT state_value FROM agent_state WHERE state_key = 'last_successful_run'
+        `;
+        return json({
+          totals: totals[0],
+          categories,
+          statuses,
+          last_successful_run: checkpoint[0]?.state_value || null,
+        });
+      }
       if (url.pathname === "/api/reports" && request.method === "GET") {
         const category = url.searchParams.get("category") || "";
         const status = url.searchParams.get("status") || "";
