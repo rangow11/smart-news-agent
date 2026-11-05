@@ -50,13 +50,13 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
  <div class="row" style="justify-content:space-between"><h3>مدیریت منابع خبری</h3><button id="reloadSources">بازخوانی منابع</button></div>
  <div class="controls">
   <input id="newSourceName" placeholder="نام منبع">
-  <input id="newSourceUrl" type="url" placeholder="نشانی RSS یا Atom (HTTPS)">
+  <input id="newSourceUrl" type="url" placeholder="نشانی RSS/Atom یا کانال عمومی تلگرام (t.me/s/...) — HTTPS">
   <select id="newSourceLanguage"><option value="fa">فارسی</option><option value="en">انگلیسی</option><option value="ar">عربی</option><option value="he">عبری</option><option value="other">سایر</option></select>
   <input id="newSourceRegion" placeholder="کشور / منطقه، مثل IR">
   <label class="sub">کیفیت منبع (۰ تا ۱۰۰) <input id="newSourceQuality" type="number" min="0" max="100" value="70"></label>
   <button id="addSource">تست و افزودن منبع</button>
  </div>
- <div class="sub" id="sourceMessage" style="margin:8px 0">فید هنگام افزودن آزمایش می‌شود. غیرفعال‌سازی منابع از اجرای بعدی اعمال خواهد شد.</div>
+ <div class="sub" id="sourceMessage" style="margin:8px 0">فید RSS/Atom یا صفحه عمومی تلگرام هنگام افزودن آزمایش می‌شود. غیرفعال‌سازی منابع از اجرای بعدی اعمال خواهد شد.</div>
  <div id="sourceList"></div>
 </section>
 <section id="notifications-panel" class="panel hidden">
