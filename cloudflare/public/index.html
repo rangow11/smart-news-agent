@@ -139,7 +139,7 @@ let notificationBaseline=null, notificationTimer=null;
 async function pollBrowserNotifications(){
  if(!token||!('Notification' in window)||Notification.permission!=='granted')return;
  try{
-  const p=new URLSearchParams({sort:'newest',limit:'20',offset:'0'});
+  const p=new URLSearchParams({sort:'newest',limit:'100',offset:'0'});
   const data=await api('/api/reports?'+p);
   if(!data.reports.length)return;
   const stamps=data.reports.map(r=>r.fetched_at).filter(Boolean).sort();
