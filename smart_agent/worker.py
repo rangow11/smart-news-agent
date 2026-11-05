@@ -41,6 +41,7 @@ ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_report_at TIMESTAMPTZ;
 ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_error TEXT;
 ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_enabled BOOLEAN;
 ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_quality_override SMALLINT;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS telegram_parser_version SMALLINT NOT NULL DEFAULT 0;
 CREATE TABLE IF NOT EXISTS agent_settings (
     setting_key TEXT PRIMARY KEY,
     setting_value TEXT NOT NULL,
@@ -391,8 +392,8 @@ def parse_telegram_channel(url: str) -> list[dict]:
             "published": published.isoformat(),
             "published_parsed": published.utctimetuple(),
         })
-    if not entries and "tgme_widget_message_wrap" not in document:
-        raise RuntimeError("Telegram channel preview is unavailable or restricted")
+    if not entries:
+        raise RuntimeError("Telegram channel preview is unavailable or contains no readable posts")
     return entries
 
 
@@ -596,7 +597,7 @@ def main() -> int:
         configure_sources(conn)
         sources = conn.execute(
             """SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
-                      language, region, last_success_at, created_at
+                      language, region, last_success_at, created_at, telegram_parser_version
                FROM news_sources
                WHERE COALESCE(operator_enabled, enabled) = TRUE
                ORDER BY id"""
@@ -609,7 +610,12 @@ def main() -> int:
         for source in sources:
             try:
                 LOG.info("Checking RSS source: %s", source["name"])
-                if source["last_success_at"]:
+                is_telegram_source = urlsplit(source["feed_url"]).hostname in {"t.me", "telegram.me"}
+                if is_telegram_source and int(source.get("telegram_parser_version") or 0) < 1:
+                    source_window_start = source["created_at"] - timedelta(
+                        minutes=max(1, int(os.getenv("INITIAL_LOOKBACK_MINUTES", "30")))
+                    )
+                elif source["last_success_at"]:
                     source_window_start = source["last_success_at"] - timedelta(
                         minutes=max(0, int(os.getenv("WINDOW_OVERLAP_MINUTES", "5")))
                     )
@@ -621,6 +627,7 @@ def main() -> int:
                 conn.execute(
                     """UPDATE news_sources SET last_checked_at = NOW(), last_success_at = NOW(),
                        last_error = NULL,
+                       telegram_parser_version = CASE WHEN feed_url LIKE 'https://t.me/s/%' THEN 1 ELSE telegram_parser_version END,
                        last_report_at = CASE WHEN %s > 0 THEN NOW() ELSE last_report_at END
                        WHERE id = %s""",
                     (count, source["id"]),
