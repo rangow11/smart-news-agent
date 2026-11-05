@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: smart-news-agent-worker
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   collect-and-analyze:
