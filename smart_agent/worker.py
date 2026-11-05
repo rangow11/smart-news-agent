@@ -31,6 +31,19 @@ CREATE TABLE IF NOT EXISTS news_sources (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS source_quality SMALLINT NOT NULL DEFAULT 50;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS region TEXT NOT NULL DEFAULT '';
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_success_at TIMESTAMPTZ;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_report_at TIMESTAMPTZ;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_error TEXT;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_enabled BOOLEAN;
+ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS operator_quality_override SMALLINT;
+CREATE TABLE IF NOT EXISTS agent_settings (
+    setting_key TEXT PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 CREATE TABLE IF NOT EXISTS news_reports (
     id BIGSERIAL PRIMARY KEY,
     source_id BIGINT REFERENCES news_sources(id) ON DELETE SET NULL,
@@ -434,12 +447,13 @@ def configure_sources(conn) -> None:
             raise ValueError("Each source needs name and feed_url")
         quality = max(0, min(100, int(item.get("source_quality", 50))))
         conn.execute(
-            """INSERT INTO news_sources (name, feed_url, enabled, source_quality)
-               VALUES (%s, %s, TRUE, %s)
+            """INSERT INTO news_sources (name, feed_url, enabled, source_quality, language, region)
+               VALUES (%s, %s, TRUE, %s, %s, %s)
                ON CONFLICT (feed_url) DO UPDATE
-               SET name = EXCLUDED.name, enabled = TRUE,
-                   source_quality = EXCLUDED.source_quality""",
-            (str(item["name"]).strip(), str(item["feed_url"]).strip(), quality),
+               SET name = EXCLUDED.name, source_quality = EXCLUDED.source_quality,
+                   language = EXCLUDED.language, region = EXCLUDED.region""",
+            (str(item["name"]).strip(), str(item["feed_url"]).strip(), quality,
+             str(item.get("language", "unknown"))[:16], str(item.get("region", ""))[:80]),
         )
     conn.commit()
 
@@ -459,7 +473,11 @@ def main() -> int:
         conn.commit()
         configure_sources(conn)
         sources = conn.execute(
-            "SELECT id, name, feed_url, source_quality FROM news_sources WHERE enabled = TRUE ORDER BY id"
+            "SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
+                    language, region
+             FROM news_sources
+             WHERE COALESCE(operator_enabled, enabled) = TRUE
+             ORDER BY id"
         ).fetchall()
         run_started = datetime.now(UTC)
         window_start, window_end = collection_window(conn, run_started)
@@ -469,10 +487,24 @@ def main() -> int:
         for source in sources:
             try:
                 count = process_feed(conn, source, window_start, window_end)
+                conn.execute(
+                    """UPDATE news_sources SET last_checked_at = NOW(), last_success_at = NOW(),
+                       last_error = NULL,
+                       last_report_at = CASE WHEN %s > 0 THEN NOW() ELSE last_report_at END
+                       WHERE id = %s""",
+                    (count, source["id"]),
+                )
+                conn.commit()
                 LOG.info("%s: %d new reports", source["name"], count)
                 total += count
-            except Exception:
+            except Exception as exc:
                 failed_sources += 1
+                conn.execute(
+                    """UPDATE news_sources SET last_checked_at = NOW(), last_error = %s
+                       WHERE id = %s""",
+                    (str(exc)[:1000], source["id"]),
+                )
+                conn.commit()
                 LOG.exception("Feed failed: %s", source["name"])
         LOG.info(
             "Run complete: %d new reports from %d sources (%d failed)",
