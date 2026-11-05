@@ -50,4 +50,4 @@ jobs:
         run: |
           python -m compileall -q smart_agent
           python -c "from smart_agent.worker import CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"detailed_report\": \"گزارش تفصیلی با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
-          python -m pytest -q tests/test_smart_agent_worker.py
+          python -m pytest -q --noconftest tests/test_smart_agent_worker.py
