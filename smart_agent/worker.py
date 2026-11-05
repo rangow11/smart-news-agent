@@ -511,6 +511,19 @@ def configure_sources(conn) -> None:
     if not sources:
         raise ValueError("No news feeds are configured")
     conn.execute("UPDATE news_sources SET enabled = FALSE WHERE name LIKE 'پایش اخبار استان % - صداوسیما'")
+    configured_feed_urls = {
+        str(item.get("feed_url", "")).strip()
+        for item in sources
+        if isinstance(item, dict) and item.get("feed_url")
+    }
+    for existing in conn.execute(
+        "SELECT id, feed_url FROM news_sources WHERE LEFT(name, 12) = 'شبکه استانی '"
+    ).fetchall():
+        if existing["feed_url"] not in configured_feed_urls:
+            conn.execute(
+                "UPDATE news_sources SET enabled = FALSE, operator_enabled = FALSE WHERE id = %s",
+                (existing["id"],),
+            )
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
