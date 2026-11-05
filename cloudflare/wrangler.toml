@@ -7,4 +7,4 @@ directory = "./public"
 binding = "ASSETS"
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["*/30 * * * *"]
