@@ -154,6 +154,7 @@ def test_validate_analysis_accepts_valid_model_output() -> None:
         "news_track": "main",
         "category": CATEGORIES[0],
         "summary": "طبق گزارش منبع، این رویداد رخ داده است.",
+        "detailed_report": "گزارش تفصیلی بر پایه متن خبر.",
         "importance": 70,
         "mission_relevance": 80,
         "freshness": 90,
@@ -167,6 +168,7 @@ def test_validate_analysis_rejects_unknown_category() -> None:
         "news_track": "secondary",
         "category": "دسته ساختگی",
         "summary": "خلاصه",
+        "detailed_report": "گزارش تفصیلی",
         "importance": 70,
         "mission_relevance": 80,
         "freshness": 90,
@@ -271,3 +273,32 @@ def test_collection_window_uses_previous_success_with_overlap(monkeypatch) -> No
     start, end = collection_window(Connection(), now)
     assert start == previous - timedelta(minutes=5)
     assert end == now
+
+
+def test_extract_feed_text_prefers_longer_content_encoded_body() -> None:
+    from smart_agent.worker import extract_feed_text
+
+    text = extract_feed_text({
+        "summary": "<p>خلاصه کوتاه</p>",
+        "content": [{"value": "<p>بند اول خبر</p><p>بند دوم خبر</p>"}],
+    })
+    assert "بند اول خبر" in text
+    assert "بند دوم خبر" in text
+
+
+def test_validate_analysis_requires_detailed_report() -> None:
+    result = {
+        "news_track": "secondary",
+        "category": CATEGORIES[0],
+        "summary": "خلاصه معتبر",
+        "importance": 70,
+        "mission_relevance": 80,
+        "freshness": 90,
+        "is_rumor": False,
+    }
+    try:
+        validate_analysis(result)
+    except ValueError as exc:
+        assert "detailed report" in str(exc)
+    else:
+        raise AssertionError("A missing detailed report must be rejected")
