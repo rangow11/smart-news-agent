@@ -65,9 +65,9 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
 </section>
 <section id="settings-panel" class="panel tab-hidden">
  <h3>تنظیمات اجرای عامل خبری</h3>
- <div class="sub">فاصله زمانی بین اجراهای خودکار را بر حسب دقیقه تعیین کن. زمان‌بند پایه با گام ۵ دقیقه طراحی شده است؛ مقدار انتخابی باید مضربی از ۵ باشد. اجرای این گام پس از به‌روزرسانی زمان‌بند شاخه اصلی فعال می‌شود.</div>
+ <div class="sub">برنامه هوشمند پیش‌فرض: از ۶ تا ۱۴ هر نیم ساعت، از ۱۴ تا ۲۳ هر ساعت و از ۲۳ تا ۶ بدون اجرا. مقدار ۳۰ دقیقه همین برنامه را فعال می‌کند؛ هر مقدار دیگر، حالت آزمایشی با فاصله انتخابی را در بازه ۶ تا ۲۳ فعال می‌کند.</div>
  <div class="row" style="margin-top:12px">
-  <label class="sub">فاصله اجرا (دقیقه)
+  <label class="sub">فاصله آزمایشی (دقیقه؛ ۳۰ = برنامه هوشمند)
    <input id="runIntervalMinutes" type="number" min="5" max="1440" step="5" value="30" style="width:130px">
   </label>
   <button id="saveRunSettings">ذخیره تنظیمات</button>
@@ -199,7 +199,7 @@ async function loadRunSettings(){
   const data=await api('/api/settings');
   $('runIntervalMinutes').value=data.run_interval_minutes||30;
   const last=data.last_run_at?new Date(data.last_run_at).toLocaleString('fa-IR'):'هنوز اجرایی ثبت نشده';
-  $('runSettingsMessage').textContent='فاصله ذخیره‌شده: '+data.run_interval_minutes+' دقیقه · بررسی زمان‌بند: هر '+data.scheduler_tick_minutes+' دقیقه · آخرین شروع اجرا: '+last;
+  $('runSettingsMessage').textContent=(data.run_interval_minutes===30?'حالت فعال: برنامه هوشمند روزانه':'حالت فعال: آزمایشی، هر '+data.run_interval_minutes+' دقیقه')+' · بررسی زمان‌بند: هر '+data.scheduler_tick_minutes+' دقیقه · آخرین شروع اجرا: '+last;
  }catch(e){$('runSettingsMessage').textContent='خطا در دریافت تنظیمات: '+e.message}
 }
 async function saveRunSettings(){
@@ -209,7 +209,7 @@ async function saveRunSettings(){
  }
  try{
   const data=await api('/api/settings',{method:'POST',body:JSON.stringify({run_interval_minutes:value})});
-  $('runSettingsMessage').textContent='تنظیمات ذخیره شد: اجرای خودکار هر '+data.run_interval_minutes+' دقیقه. اجرای بعدی در اولین نوبت زمان‌بند انجام می‌شود.';
+  $('runSettingsMessage').textContent=data.run_interval_minutes===30?'برنامه هوشمند روزانه فعال شد.':'حالت آزمایشی فعال شد: هر '+data.run_interval_minutes+' دقیقه در بازه ۶ تا ۲۳.';
  }catch(e){$('runSettingsMessage').textContent='خطا در ذخیره تنظیمات: '+e.message}
 }
 $('saveRunSettings').onclick=saveRunSettings;
