@@ -162,22 +162,14 @@ def canonicalize(url: str) -> str:
     return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
-# Gemma 4 has larger daily free-tier quotas in the operator's AI Studio project.
-# Keep batches conservative because the observed Gemma input TPM limit is lower.
-DEFAULT_GEMINI_MODEL = "gemma-4-26b-a4b-it"
+# Gemini 3.1 Flash Lite completed a real batch successfully in the latest run.
+# Prefer tested, lower-cost Flash models; move on immediately when one is unavailable.
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = (
-    "gemma-4-31b-it",
-    "gemini-3.1-flash-lite",
     "gemini-2.5-flash-lite",
     "gemini-2.5-flash",
     "gemini-3-flash",
-    # Lower-priority fallbacks: the operator's last AI Studio snapshot showed
-    # these models at or near their daily free-tier limits.
     "gemini-3.5-flash-lite",
-    "gemini-3.6-flash",
-    "gemini-3.8-flash",
-    "gemini-3.7-flash",
-    "gemini-3.5-flash",
 )
 DW_PERSIAN_FALLBACK_FEED_URL = "https://rss.dw.com/xml/rss-per-all_volltext"
 _ACTIVE_GEMINI_MODEL: str | None = None
@@ -399,12 +391,9 @@ def analyze_batch(items: list[dict]) -> tuple[dict[str, dict], str, str]:
             return results, provider, actual_model
         except Exception as exc:
             last_error = exc
-            if isinstance(exc, HTTPError) and exc.code in (500, 502, 503, 504):
-                LOG.warning("Transient batch HTTP %s on %s; waiting before fallback", exc.code, model)
-                time.sleep(2)
             if not _should_try_next_gemini(exc) or index == len(chain) - 1:
                 raise
-            LOG.warning("Batch model %s unavailable (%s); trying next model", model, type(exc).__name__)
+            LOG.warning("Batch model %s unavailable (%s); trying next model without retrying the news batch", model, type(exc).__name__)
     if last_error:
         raise last_error
     raise RuntimeError("No batch analysis model is configured")
@@ -893,7 +882,7 @@ def main() -> int:
 
         inserted_total = 0
         inserted_by_source: dict[int, int] = {}
-        failed_analysis_source_ids: set[int] = set()
+        skipped_item_ids: set[str] = set()
         for batch_index, batch in enumerate(batches, start=1):
             if batch_index > 1:
                 # Keep multiple requests inside the low Gemma input-TPM budget.
@@ -908,21 +897,16 @@ def main() -> int:
                 LOG.info("Batch %d/%d analyzed with %s/%s: %d valid results",
                          batch_index, len(batches), provider, model, len(results))
             except Exception as exc:
-                LOG.exception("Analysis batch %d/%d failed; its news remain unprocessed for retry",
-                              batch_index, len(batches))
-                for item in batch:
-                    failed_analysis_source_ids.update(item["source_ids"])
-                    for source_id in item["source_ids"]:
-                        failed_source_errors[source_id] = f"AI batch failed: {str(exc)[:800]}"
+                LOG.exception("Analysis batch %d/%d failed; skipping %d news items without retry",
+                              batch_index, len(batches), len(batch))
+                skipped_item_ids.update(item["id"] for item in batch)
                 continue
 
             for item in batch:
                 result = results.get(item["id"])
                 if not result:
-                    for source_id in item["source_ids"]:
-                        failed_analysis_source_ids.add(source_id)
-                        failed_source_errors[source_id] = "AI batch omitted or returned an invalid result for this news item"
-                    LOG.error("No valid AI result for %s; it will be retried in a later run", item["id"])
+                    skipped_item_ids.add(item["id"])
+                    LOG.warning("No valid AI result for %s; skipping it without a follow-up request", item["id"])
                     continue
                 source = item["source"]
                 try:
@@ -949,15 +933,13 @@ def main() -> int:
                             inserted_total += 1
                             inserted_by_source[source["id"]] = inserted_by_source.get(source["id"], 0) + 1
                 except Exception as exc:
-                    for source_id in item["source_ids"]:
-                        failed_analysis_source_ids.add(source_id)
-                        failed_source_errors[source_id] = f"Database insert failed: {str(exc)[:800]}"
-                    LOG.exception("Could not save analyzed news item %s", item["id"])
+                    skipped_item_ids.add(item["id"])
+                    LOG.exception("Could not save analyzed news item %s; it will not be retried", item["id"])
 
-        failed_source_ids = set(failed_source_errors) | failed_analysis_source_ids
+        # Only feed collection failures hold back a source checkpoint. AI misses are final skips.
         for source in sources:
             source_id = source["id"]
-            if source_id in failed_source_ids:
+            if source_id in failed_source_errors:
                 error = failed_source_errors.get(source_id, "Some news from this source remain pending")
                 conn.execute(
                     "UPDATE news_sources SET last_checked_at = NOW(), last_error = %s WHERE id = %s",
@@ -974,14 +956,10 @@ def main() -> int:
                 )
         conn.commit()
 
-        failed_sources = len(failed_source_ids)
-        failed_items = sum(
-            1 for item in candidates
-            if any(source_id in failed_analysis_source_ids for source_id in item["source_ids"])
-        )
+        failed_sources = len(failed_source_errors)
         LOG.info(
-            "Run complete: %d new reports saved; %d/%d unique news items pending; %d AI batch request(s); %d/%d sources failed or pending",
-            inserted_total, failed_items, len(candidates), len(batches), failed_sources, len(sources),
+            "Run complete: %d new reports saved; %d/%d news items skipped (not retried); %d AI batch(es); %d/%d sources failed collection",
+            inserted_total, len(skipped_item_ids), len(candidates), len(batches), failed_sources, len(sources),
         )
         if sources and failed_sources == len(sources):
             raise RuntimeError(f"All {len(sources)} RSS sources failed or have unprocessed news; checkpoints were not advanced")
@@ -997,7 +975,7 @@ def main() -> int:
         conn.commit()
         if failed_sources:
             LOG.warning(
-                "%d sources failed or have pending AI results; their source checkpoints were not advanced and they will retry",
+                "%d source feeds failed collection; only those feed checkpoints remain unchanged",
                 failed_sources,
             )
         LOG.info("Successful collection checkpoint saved: %s", run_started.isoformat())
