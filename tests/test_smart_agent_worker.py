@@ -104,7 +104,7 @@ def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
 
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
-    assert _gemini_model_chain() == ["gemma-4-26b-a4b-it", "gemma-4-31b-it", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-3-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"]
+    assert _gemini_model_chain() == ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-3-flash", "gemini-3.5-flash-lite"]
 
 
 
@@ -244,9 +244,9 @@ def test_default_gemini_fallback_chain_includes_flash_lite(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     chain = _gemini_model_chain()
-    assert chain[0] == "gemma-4-26b-a4b-it"
-    assert "gemma-4-31b-it" in chain
-    assert "gemini-3.1-flash-lite" in chain
+    assert chain[0] == "gemini-3.1-flash-lite"
+    assert chain[1] == "gemini-2.5-flash-lite"
+    assert "gemma-4-26b-a4b-it" not in chain
 
 
 def test_analyze_falls_back_when_model_output_fails_validation(monkeypatch) -> None:
@@ -389,13 +389,13 @@ def test_batch_builder_respects_item_limit(monkeypatch) -> None:
     assert [len(batch) for batch in batches] == [2, 2, 1]
 
 
-def test_gemma_model_chain_includes_both_gemma_variants(monkeypatch) -> None:
+def test_default_model_chain_avoids_unverified_gemma_variants(monkeypatch) -> None:
     from smart_agent.worker import _gemini_model_chain
 
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     chain = _gemini_model_chain()
-    assert chain[:2] == ["gemma-4-26b-a4b-it", "gemma-4-31b-it"]
+    assert chain[:2] == ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"]
 
 
 def test_batch_response_validation_keeps_only_expected_valid_ids(monkeypatch) -> None:
