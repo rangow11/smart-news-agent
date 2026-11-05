@@ -14,10 +14,10 @@ from smart_agent.worker import (
     configure_sources,
     entry_published_at,
     gemini_analyze,
+    process_feed,
     report_exists,
     score,
     validate_analysis,
-    process_feed,
 )
 
 
