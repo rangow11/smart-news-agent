@@ -71,18 +71,11 @@ async function verifyFeedUrl(value) {
   }
 }
 
-function authorized(request, env) {
-  const expected = env.DASHBOARD_ACCESS_TOKEN || "";
-  const supplied = request.headers.get("Authorization") || "";
-  return expected.length >= 24 && supplied === `Bearer ${expected}`;
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
-    if (!authorized(request, env)) return json({ error: "unauthorized" }, 401);
     if (!env.DATABASE_URL) return json({ error: "database_not_configured" }, 503);
 
     try {
