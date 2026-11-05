@@ -68,8 +68,10 @@ export default {
         const status = url.searchParams.get("status") || "";
         const q = (url.searchParams.get("q") || "").slice(0, 160);
         const minScore = Math.max(0, Math.min(100, Number(url.searchParams.get("min_score") || 0)));
-        const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || 50)));
-        const offset = Math.max(0, Number(url.searchParams.get("offset") || 0));
+        const requestedLimit = Number(url.searchParams.get("limit") || 50);
+        const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(100, requestedLimit)) : 50;
+        const requestedOffset = Number(url.searchParams.get("offset") || 0);
+        const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
         const rows = await sql`
           SELECT id, source_name, title, url, published_at, fetched_at, content,
                  category, summary, importance, mission_relevance, freshness,
@@ -81,10 +83,12 @@ export default {
             AND total_score >= ${minScore}
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
                  OR summary ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%')
-          ORDER BY fetched_at DESC
-          LIMIT ${limit} OFFSET ${offset}
+          ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST, fetched_at DESC
+          LIMIT ${limit + 1} OFFSET ${offset}
         `;
-        return json({ reports: rows, count: rows.length, limit, offset, statuses: STATUSES });
+        const hasMore = rows.length > limit;
+        const reports = hasMore ? rows.slice(0, limit) : rows;
+        return json({ reports, count: reports.length, limit, offset, has_more: hasMore, statuses: STATUSES });
       }
 
       const match = url.pathname.match(/^\/api\/reports\/(\d+)\/status$/);
