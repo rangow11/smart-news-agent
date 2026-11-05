@@ -635,14 +635,6 @@ def main() -> int:
                         interval_minutes,
                     )
                     return 0
-        conn.execute(
-            """INSERT INTO agent_state (state_key, state_value)
-               VALUES (%s, %s)
-               ON CONFLICT (state_key) DO UPDATE
-               SET state_value = EXCLUDED.state_value, updated_at = NOW()""",
-            ("last_worker_run", run_started),
-        )
-        conn.commit()
         configure_sources(conn)
         sources = conn.execute(
             """SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
@@ -702,6 +694,14 @@ def main() -> int:
             raise RuntimeError(f"All {len(sources)} RSS sources failed; global checkpoint was not advanced")
         send_ntfy_digest(conn, run_started)
         save_successful_checkpoint(conn, run_started)
+        conn.execute(
+            """INSERT INTO agent_state (state_key, state_value)
+               VALUES (%s, %s)
+               ON CONFLICT (state_key) DO UPDATE
+               SET state_value = EXCLUDED.state_value, updated_at = NOW()""",
+            ("last_worker_run", run_started),
+        )
+        conn.commit()
         if failed_sources:
             LOG.warning(
                 "%d sources failed and will retry from their own last-success checkpoints",
