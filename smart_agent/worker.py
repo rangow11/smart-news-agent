@@ -162,12 +162,10 @@ def canonicalize(url: str) -> str:
     return urlunsplit((parts.scheme.lower() or "https", host, path, urlencode(query, doseq=True), ""))
 
 
-DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
 DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = (
-    "gemini-3.5-flash-lite",
-    "gemini-3.7-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
+    "gemini-2.5-flash",
+    "gemini-3-flash",
     "gemini-3.1-flash-lite",
 )
 DW_PERSIAN_FALLBACK_FEED_URL = "https://rss.dw.com/xml/rss-per-all_volltext"
