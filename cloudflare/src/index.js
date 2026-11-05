@@ -140,6 +140,32 @@ export default {
         return json({ configured: true, topic });
       }
 
+      if (url.pathname === "/api/settings" && request.method === "GET") {
+        await ensureNotificationSchema(sql);
+        const rows = await sql`SELECT setting_value FROM agent_settings WHERE setting_key = 'run_interval_minutes'`;
+        const lastRun = await sql`SELECT state_value FROM agent_state WHERE state_key = 'last_worker_run'`;
+        return json({
+          run_interval_minutes: Number(rows[0]?.setting_value || 30),
+          last_run_at: lastRun[0]?.state_value || null,
+          scheduler_tick_minutes: 5
+        });
+      }
+      if (url.pathname === "/api/settings" && request.method === "POST") {
+        await ensureNotificationSchema(sql);
+        const body = await request.json();
+        const interval = Number(body.run_interval_minutes);
+        if (!Number.isInteger(interval) || interval < 5 || interval > 1440 || interval % 5 !== 0) {
+          return json({ error: "invalid_run_interval", message: "فاصله باید مضربی از ۵ و بین ۵ تا ۱۴۴۰ دقیقه باشد." }, 400);
+        }
+        await sql`
+          INSERT INTO agent_settings (setting_key, setting_value)
+          VALUES ('run_interval_minutes', ${String(interval)})
+          ON CONFLICT (setting_key) DO UPDATE
+          SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+        `;
+        return json({ run_interval_minutes: interval, scheduler_tick_minutes: 5, saved: true });
+      }
+
       const sourceMatch = url.pathname.match(/^\/api\/sources\/(\d+)$/);
       if (sourceMatch && request.method === "PATCH") {
         await ensureSourceSchema(sql);
