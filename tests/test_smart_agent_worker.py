@@ -151,6 +151,7 @@ def test_report_exists_checks_original_and_canonical_urls() -> None:
 
 def test_validate_analysis_accepts_valid_model_output() -> None:
     result = {
+        "news_track": "main",
         "category": CATEGORIES[0],
         "summary": "طبق گزارش منبع، این رویداد رخ داده است.",
         "importance": 70,
@@ -163,6 +164,7 @@ def test_validate_analysis_accepts_valid_model_output() -> None:
 
 def test_validate_analysis_rejects_unknown_category() -> None:
     result = {
+        "news_track": "secondary",
         "category": "دسته ساختگی",
         "summary": "خلاصه",
         "importance": 70,
@@ -180,6 +182,7 @@ def test_validate_analysis_rejects_unknown_category() -> None:
 
 def test_validate_analysis_rejects_invalid_score_and_rumor_type() -> None:
     result = {
+        "news_track": "secondary",
         "category": CATEGORIES[0],
         "summary": "خلاصه",
         "importance": 101,
