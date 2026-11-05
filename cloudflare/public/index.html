@@ -60,8 +60,9 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
 <section id="notifications-panel" class="panel">
  <h3>اعلان خبرهای تازه</h3>
  <div class="sub">اعلان موبایل از طریق ntfy حتی با بسته بودن داشبورد کار می‌کند؛ اعلان مرورگر فقط وقتی داشبورد باز است فعال می‌ماند.</div>
- <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><span id="notificationState" class="sub"></span></div>
+ <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><button id="testNtfyNotification" style="background:#176b4b;border-color:#27966a">ارسال اعلان آزمایشی</button><span id="notificationState" class="sub"></span></div>
  <div id="ntfyInfo" class="sub" style="margin-top:10px"></div>
+ <div class="sub" style="margin-top:8px">اعلان آزمایشی فقط برای بررسی اتصال است. اعلان خبر واقعی فقط برای خبرهای با امتیاز ۸۵ یا بالاتر ارسال می‌شود و شامل عنوان خبر، منبع، امتیاز و پیوند خبر خواهد بود.</div>
 </section>
 <section id="settings-panel" class="panel tab-hidden">
  <h3>تنظیمات اجرای عامل خبری</h3>
@@ -194,6 +195,18 @@ async function setupNotifications(){
 $('addSource').onclick=addSource;
 $('reloadSources').onclick=loadSources;
 $('enableNotifications').onclick=setupNotifications;
+async function sendTestNtfyNotification(){
+ const button=$('testNtfyNotification');button.disabled=true;button.textContent='در حال ارسال…';
+ $('notificationState').textContent='در حال ارسال پیام آزمایشی به ntfy…';
+ try{
+  const result=await api('/api/notifications/test',{method:'POST',body:JSON.stringify({})});
+  $('notificationState').textContent=result.sent?'درخواست ارسال به ntfy موفق بود؛ دریافت روی گوشی را بررسی کن.':'ارسال تأیید نشد.';
+ }catch(e){
+  const messages={notification_topic_not_configured:'ابتدا «فعال‌سازی اعلان‌ها» را بزن تا موضوع ntfy ساخته شود.',notification_test_rate_limited:'برای جلوگیری از ارسال پشت‌سرهم، ۳۰ ثانیه صبر کن و دوباره تست بزن.'};
+  $('notificationState').textContent=messages[e.message]||('تست ناموفق بود: '+e.message);
+ }finally{button.disabled=false;button.textContent='ارسال اعلان آزمایشی'}
+}
+$('testNtfyNotification').onclick=sendTestNtfyNotification;
 async function loadRunSettings(){
  try{
   const data=await api('/api/settings');
