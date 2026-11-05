@@ -213,6 +213,50 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     assert "\\n" not in prompt
 
 
+def test_default_gemini_fallback_chain_includes_flash_lite(monkeypatch) -> None:
+    from smart_agent.worker import _gemini_model_chain
+
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
+    chain = _gemini_model_chain()
+    assert chain[0] == "gemini-3.1-flash-lite"
+    assert "gemini-3.5-flash-lite" in chain
+    assert "gemini-3.5-flash" in chain
+
+
+def test_analyze_falls_back_when_model_output_fails_validation(monkeypatch) -> None:
+    import smart_agent.worker as worker
+
+    valid = {
+        "news_track": "secondary",
+        "category": CATEGORIES[-1],
+        "summary": "خلاصه معتبر",
+        "detailed_report": "گزارش تفصیلی معتبر",
+        "importance": 70,
+        "mission_relevance": 80,
+        "freshness": 90,
+        "is_rumor": False,
+    }
+    calls = []
+
+    monkeypatch.setattr(worker, "_gemini_model_chain", lambda: ["first-model", "second-model"])
+    monkeypatch.setattr(worker, "_ACTIVE_GEMINI_MODEL", None)
+
+    def fake_gemini(_title, _content, _source, model=None):
+        calls.append(model)
+        if model == "first-model":
+            invalid = dict(valid, category="دسته نامعتبر")
+            return invalid, "gemini", model
+        return valid, "gemini", model
+
+    monkeypatch.setattr(worker, "gemini_analyze", fake_gemini)
+    result, provider, model = worker.analyze("title", "content", "source")
+    assert result["category"] == CATEGORIES[-1]
+    assert provider == "gemini"
+    assert model == "second-model"
+    assert calls == ["first-model", "second-model"]
+
+
 def test_missing_gemini_key_fails_without_model_fallback(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     try:
