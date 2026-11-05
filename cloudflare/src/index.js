@@ -86,7 +86,7 @@ export default {
         const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
         const rows = await sql`
           SELECT id, source_name, title, url, published_at, fetched_at, content,
-                 category, summary, importance, mission_relevance, freshness,
+                 category, news_track, summary, importance, mission_relevance, freshness,
                  source_quality, total_score, is_rumor, ai_model, review_status,
                  review_note, reviewed_at
           FROM news_reports
@@ -101,6 +101,7 @@ export default {
           ORDER BY
             CASE WHEN ${sort} = 'newest' THEN published_at END DESC NULLS LAST,
             CASE WHEN ${sort} = 'score' THEN total_score END DESC NULLS LAST,
+            CASE WHEN ${sort} = 'combined' THEN (SELECT COUNT(*) FROM news_reports sent WHERE sent.source_name = news_reports.source_name AND sent.review_status IN ('ارسال‌شده','منتشرشده')) END ASC NULLS LAST,
             total_score DESC NULLS LAST, published_at DESC NULLS LAST, fetched_at DESC
           LIMIT ${limit + 1} OFFSET ${offset}
         `;
