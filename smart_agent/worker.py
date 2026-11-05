@@ -13,6 +13,7 @@ import os
 import re
 import socket
 import sys
+import time
 from datetime import UTC, datetime, timedelta
 from html import unescape
 from pathlib import Path
@@ -162,7 +163,7 @@ def canonicalize(url: str) -> str:
 
 
 DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
-DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = ("gemini-3.5-flash-lite", "gemini-3.5-flash")
+DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = ("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.8-flash")
 DW_PERSIAN_FALLBACK_FEED_URL = "https://rss.dw.com/xml/rss-per-all_volltext"
 _ACTIVE_GEMINI_MODEL: str | None = None
 
@@ -224,31 +225,33 @@ def _should_try_next_gemini(exc: Exception) -> bool:
 
 
 def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
-    """Try Gemini models in order and keep the working fallback for this run."""
     global _ACTIVE_GEMINI_MODEL
     chain = _gemini_model_chain()
     if _ACTIVE_GEMINI_MODEL in chain:
-        # Once this run has stepped down, do not bounce back to a model that
-        # already exhausted its quota; continue from the active fallback.
-        chain = chain[chain.index(_ACTIVE_GEMINI_MODEL) :]
+        chain = chain[chain.index(_ACTIVE_GEMINI_MODEL):]
     last_error: Exception | None = None
     for index, model in enumerate(chain):
-        try:
-            result, provider, actual_model = gemini_analyze(title, content, source, model=model)
-            result = validate_analysis(result)
-            _ACTIVE_GEMINI_MODEL = model
-            if index:
-                LOG.warning("Gemini fallback model selected for this run: %s", model)
-            return result, provider, actual_model
-        except (HTTPError, URLError, TimeoutError, KeyError, ValueError) as exc:
-            last_error = exc
-            if not _should_try_next_gemini(exc) or index == len(chain) - 1:
-                raise
-            LOG.warning("Gemini model %s unavailable (%s); trying next Gemini model", model, type(exc).__name__)
+        for attempt in range(2):
+            try:
+                result, provider, actual_model = gemini_analyze(title, content, source, model=model)
+                result = validate_analysis(result)
+                _ACTIVE_GEMINI_MODEL = model
+                if index:
+                    LOG.warning("Gemini fallback model selected for this run: %s", model)
+                return result, provider, actual_model
+            except Exception as exc:
+                last_error = exc
+                if isinstance(exc, HTTPError) and exc.code in (500, 502, 503, 504) and attempt == 0:
+                    LOG.warning("Transient Gemini HTTP %s on %s; retrying once", exc.code, model)
+                    time.sleep(2)
+                    continue
+                if not _should_try_next_gemini(exc) or index == len(chain) - 1:
+                    raise
+                LOG.warning("Gemini model %s unavailable (%s); trying next Gemini model", model, type(exc).__name__)
+                break
     if last_error:
         raise last_error
-    raise RuntimeError("No Gemini models are configured")
-
+    raise RuntimeError("No Gemini model is configured")
 
 def score(result: dict) -> int:
     return round(sum(max(0, min(100, int(result.get(key, 0)))) * weight / 100 for key, weight in SCORING_WEIGHTS.items()))
