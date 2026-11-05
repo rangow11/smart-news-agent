@@ -148,7 +148,8 @@ async function pollBrowserNotifications(){
   const fresh=data.reports.filter(r=>(r.fetched_at||r.published_at)>notificationBaseline);
   if(fresh.length){
    const newest=fresh.reduce((a,b)=>(a.total_score||0)>=(b.total_score||0)?a:b);
-   new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
+   const notice=new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
+   notice.onclick=()=>{window.focus();notice.close()};
    notificationBaseline=stamp;
   }
  }catch(e){console.warn('notification poll failed',e)}
