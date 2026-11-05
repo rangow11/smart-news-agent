@@ -14,6 +14,7 @@ import re
 import socket
 import sys
 from datetime import UTC, datetime, timedelta
+from html import unescape
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
@@ -340,8 +341,68 @@ def extract_feed_text(entry) -> str:
     return max(cleaned, key=len, default="")[:12000]
 
 
+
+def parse_telegram_channel(url: str) -> list[dict]:
+    """Read public Telegram channel previews as feed-like entries without a third-party API."""
+    request = Request(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (compatible; SmartNewsAgent/1.0)", "Accept": "text/html"},
+    )
+    with urlopen(request, timeout=15) as response:  # noqa: S310
+        document = response.read(2_000_000).decode("utf-8", errors="replace")
+    starts = [match.start() for match in re.finditer(
+        r'<div[^>]+class="[^"]*\\btgme_widget_message_wrap\\b[^"]*"[^>]*>', document
+    )]
+    entries = []
+    for index, start in enumerate(starts):
+        end = starts[index + 1] if index + 1 < len(starts) else len(document)
+        block = document[start:end]
+        text_match = re.search(
+            r'<div[^>]+class="[^"]*\\btgme_widget_message_text\\b[^"]*"[^>]*>(.*?)</div>',
+            block,
+            re.S,
+        )
+        date_match = re.search(r'<time[^>]+datetime="([^"]+)"', block)
+        if not text_match or not date_match:
+            continue
+        content = re.sub(r"<br\\s*/?>", "\\n", text_match.group(1), flags=re.I)
+        content = unescape(re.sub(r"<[^>]+>", " ", content))
+        content = re.sub(r"\\s+", " ", content).strip()
+        if not content:
+            continue
+        try:
+            published = datetime.fromisoformat(date_match.group(1).replace("Z", "+00:00")).astimezone(UTC)
+        except ValueError:
+            continue
+        link_match = re.search(
+            r'<a[^>]+class="[^"]*\\btgme_widget_message_date\\b[^"]*"[^>]+href="([^"]+)"',
+            block,
+        )
+        post_match = re.search(r'data-post="([^"]+)"', block)
+        link = link_match.group(1) if link_match else (
+            "https://t.me/" + post_match.group(1) if post_match else ""
+        )
+        if not link:
+            continue
+        entries.append({
+            "title": content[:180],
+            "link": link,
+            "summary": content,
+            "published": published.isoformat(),
+            "published_parsed": published.utctimetuple(),
+        })
+    if not entries and "tgme_widget_message_wrap" not in document:
+        raise RuntimeError("Telegram channel preview is unavailable or restricted")
+    return entries
+
+
 def process_feed(conn, source: dict, window_start: datetime, window_end: datetime) -> int:
-    parsed = feedparser.parse(source["feed_url"])
+    feed_url = source["feed_url"]
+    if urlsplit(feed_url).hostname in {"t.me", "telegram.me"} and urlsplit(feed_url).path.startswith("/s/"):
+        parsed_entries = parse_telegram_channel(feed_url)
+        parsed = type("ParsedFeed", (), {"entries": parsed_entries, "bozo": False, "bozo_exception": None})()
+    else:
+        parsed = feedparser.parse(feed_url)
     if parsed.bozo and not parsed.entries and source["name"] == "DW Persian":
         LOG.warning("Primary DW Persian RSS failed; retrying the verified alternate feed")
         parsed = feedparser.parse(DW_PERSIAN_FALLBACK_FEED_URL)
@@ -445,6 +506,7 @@ def configure_sources(conn) -> None:
         raise ValueError("NEWS_SOURCES_JSON has no feeds configured")
     if not sources:
         raise ValueError("No news feeds are configured")
+    conn.execute("UPDATE news_sources SET enabled = FALSE WHERE name LIKE 'پایش اخبار استان % - صداوسیما'")
     for item in sources:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
