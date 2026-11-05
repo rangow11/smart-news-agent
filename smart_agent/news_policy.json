@@ -41,10 +41,15 @@
     "languages": [
       "fa",
       "en",
-      "ar"
+      "ar",
+      "he"
     ],
     "display_all_eligible_reports": true,
-    "manual_publication_decision_only": true
+    "manual_publication_decision_only": true,
+    "source_regions": [
+      "Israel"
+    ],
+    "language_handling": "Analyze Persian, English, Arabic and Hebrew feed items; produce Persian summaries and detailed reports."
   },
   "verification": {
     "independent_fact_checking": false,
