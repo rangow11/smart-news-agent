@@ -1,5 +1,6 @@
 """Unit tests for the standalone cloud worker."""
 
+import json
 from datetime import UTC, datetime, timedelta
 from io import BytesIO
 from time import struct_time
@@ -23,7 +24,6 @@ from smart_agent.worker import (
 
 
 def test_parse_telegram_channel_public_preview(monkeypatch) -> None:
-    from io import BytesIO
     from smart_agent.worker import parse_telegram_channel
 
     html = """
@@ -399,7 +399,6 @@ def test_default_model_chain_avoids_unverified_gemma_variants(monkeypatch) -> No
 
 
 def test_batch_response_validation_keeps_only_expected_valid_ids(monkeypatch) -> None:
-    import json
     import smart_agent.worker as worker
 
     class Response:
