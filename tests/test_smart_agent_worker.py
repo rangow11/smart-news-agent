@@ -206,6 +206,7 @@ def test_analysis_input_labels_article_as_untrusted_data() -> None:
     assert "داده غیرقابل اعتماد" in prompt
     from smart_agent.worker import SYSTEM_PROMPT
     assert "آمار تجمیعی" in SYSTEM_PROMPT
+    assert "عبری" in SYSTEM_PROMPT
     assert "موقعیت" in SYSTEM_PROMPT
     assert "<article>" in prompt
     assert "\n" in prompt
