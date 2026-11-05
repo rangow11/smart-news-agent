@@ -630,7 +630,7 @@ def main() -> int:
                 conn.execute(
                     """UPDATE news_sources SET last_checked_at = NOW(), last_success_at = NOW(),
                        last_error = NULL,
-                       telegram_parser_version = CASE WHEN feed_url LIKE 'https://t.me/s/%' THEN 1 ELSE telegram_parser_version END,
+                       telegram_parser_version = CASE WHEN LEFT(feed_url, 15) = 'https://t.me/s/' THEN 1 ELSE telegram_parser_version END,
                        last_report_at = CASE WHEN %s > 0 THEN NOW() ELSE last_report_at END
                        WHERE id = %s""",
                     (count, source["id"]),
