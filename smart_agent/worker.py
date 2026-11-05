@@ -485,8 +485,8 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
         except Exception:
             failed_reports += 1
             LOG.exception("Could not process report from %s: %s", source["name"], title[:100])
-    if attempted and failed_reports == attempted:
-        raise RuntimeError("All new RSS reports failed processing")
+    if failed_reports:
+        raise RuntimeError(f"{failed_reports} of {attempted} new reports failed processing")
     conn.commit()
     return inserted
 
@@ -596,7 +596,7 @@ def main() -> int:
         configure_sources(conn)
         sources = conn.execute(
             """SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
-                      language, region
+                      language, region, last_success_at, created_at
                FROM news_sources
                WHERE COALESCE(operator_enabled, enabled) = TRUE
                ORDER BY id"""
@@ -609,7 +609,15 @@ def main() -> int:
         for source in sources:
             try:
                 LOG.info("Checking RSS source: %s", source["name"])
-                count = process_feed(conn, source, window_start, window_end)
+                if source["last_success_at"]:
+                    source_window_start = source["last_success_at"] - timedelta(
+                        minutes=max(0, int(os.getenv("WINDOW_OVERLAP_MINUTES", "5")))
+                    )
+                else:
+                    source_window_start = source["created_at"] - timedelta(
+                        minutes=max(1, int(os.getenv("INITIAL_LOOKBACK_MINUTES", "30")))
+                    )
+                count = process_feed(conn, source, source_window_start, window_end)
                 conn.execute(
                     """UPDATE news_sources SET last_checked_at = NOW(), last_success_at = NOW(),
                        last_error = NULL,
@@ -635,10 +643,15 @@ def main() -> int:
             len(sources),
             failed_sources,
         )
-        if failed_sources:
-            raise RuntimeError(f"{failed_sources} of {len(sources)} RSS sources failed; checkpoint was not advanced")
+        if failed_sources == len(sources):
+            raise RuntimeError(f"All {len(sources)} RSS sources failed; global checkpoint was not advanced")
         send_ntfy_digest(conn, run_started)
         save_successful_checkpoint(conn, run_started)
+        if failed_sources:
+            LOG.warning(
+                "%d sources failed and will retry from their own last-success checkpoints",
+                failed_sources,
+            )
         LOG.info("Successful collection checkpoint saved: %s", run_started.isoformat())
     return 0
 
