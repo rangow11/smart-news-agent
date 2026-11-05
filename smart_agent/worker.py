@@ -446,14 +446,26 @@ def configure_sources(conn) -> None:
         if not isinstance(item, dict) or not item.get("name") or not item.get("feed_url"):
             raise ValueError("Each source needs name and feed_url")
         quality = max(0, min(100, int(item.get("source_quality", 50))))
+        name = str(item["name"]).strip()
+        lowered_name = name.lower()
+        language = item.get("language") or (
+            "fa" if any(term in lowered_name for term in ("persian", "fars", "iran", "provincial", "irib"))
+            else "ar" if "arabic" in lowered_name
+            else "he" if "hebrew" in lowered_name or "ynet" in lowered_name or "maariv" in lowered_name
+            else "en"
+        )
+        region = item.get("region") or (
+            "IR" if any(term in lowered_name for term in ("iran", "fars", "provincial", "irib"))
+            else "IL" if any(term in lowered_name for term in ("israel", "ynet", "maariv", "haaretz"))
+            else "INT"
+        )
         conn.execute(
             """INSERT INTO news_sources (name, feed_url, enabled, source_quality, language, region)
                VALUES (%s, %s, TRUE, %s, %s, %s)
                ON CONFLICT (feed_url) DO UPDATE
                SET name = EXCLUDED.name, source_quality = EXCLUDED.source_quality,
                    language = EXCLUDED.language, region = EXCLUDED.region""",
-            (str(item["name"]).strip(), str(item["feed_url"]).strip(), quality,
-             str(item.get("language", "unknown"))[:16], str(item.get("region", ""))[:80]),
+            (name, str(item["feed_url"]).strip(), quality, str(language)[:16], str(region)[:80]),
         )
     conn.commit()
 
