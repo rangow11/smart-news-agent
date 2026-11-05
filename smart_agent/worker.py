@@ -458,6 +458,50 @@ def configure_sources(conn) -> None:
     conn.commit()
 
 
+def send_ntfy_digest(conn, run_started: datetime) -> None:
+    """Send one compact push notification for each successful run with new reports."""
+    row = conn.execute(
+        "SELECT setting_value FROM agent_settings WHERE setting_key = %s",
+        ("ntfy_topic",),
+    ).fetchone()
+    topic = row["setting_value"] if isinstance(row, dict) else (row[0] if row else "")
+    if not topic or not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", topic):
+        return
+    reports = conn.execute(
+        """SELECT title, source_name, url, total_score
+           FROM news_reports WHERE fetched_at >= %s
+           ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST
+           LIMIT 5""",
+        (run_started,),
+    ).fetchall()
+    count_row = conn.execute(
+        "SELECT COUNT(*) FROM news_reports WHERE fetched_at >= %s",
+        (run_started,),
+    ).fetchone()
+    count = count_row[0] if not isinstance(count_row, dict) else next(iter(count_row.values()))
+    if not count:
+        return
+    lines = [f"{r['title']} | {r['source_name']} | امتیاز {r['total_score']}" for r in reports]
+    body = f"{count} خبر تازه دریافت شد.\n\n" + "\n".join(lines)
+    request = Request(
+        f"https://ntfy.sh/{quote(topic, safe='')}",
+        data=body.encode("utf-8"),
+        headers={
+            "Content-Type": "text/plain; charset=utf-8",
+            "Title": f"عامل خبری هوشمند | {count} خبر تازه",
+            "Priority": "default",
+            "Click": "https://smart-news-agent-dashboard.smartnews1.workers.dev",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=12) as response:
+            LOG.info("ntfy notification sent: HTTP %s", response.status)
+    except Exception as exc:
+        # Notification delivery must never roll back successfully collected news.
+        LOG.warning("ntfy notification failed: %s", str(exc)[:300])
+
+
 def main() -> int:
     import psycopg
     from psycopg.rows import dict_row
@@ -473,11 +517,11 @@ def main() -> int:
         conn.commit()
         configure_sources(conn)
         sources = conn.execute(
-            "SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
-                    language, region
-             FROM news_sources
-             WHERE COALESCE(operator_enabled, enabled) = TRUE
-             ORDER BY id"
+            """SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
+                      language, region
+               FROM news_sources
+               WHERE COALESCE(operator_enabled, enabled) = TRUE
+               ORDER BY id"""
         ).fetchall()
         run_started = datetime.now(UTC)
         window_start, window_end = collection_window(conn, run_started)
@@ -514,6 +558,7 @@ def main() -> int:
         )
         if failed_sources:
             raise RuntimeError(f"{failed_sources} of {len(sources)} RSS sources failed; checkpoint was not advanced")
+        send_ntfy_digest(conn, run_started)
         save_successful_checkpoint(conn, run_started)
         LOG.info("Successful collection checkpoint saved: %s", run_started.isoformat())
     return 0
