@@ -202,7 +202,6 @@ def test_empty_news_sources_configuration_is_rejected(monkeypatch) -> None:
         raise AssertionError("An empty feed list must not look like a successful run")
 
 
-
 def test_entry_published_at_uses_published_or_updated_timestamp() -> None:
     parsed = struct_time((2026, 11, 5, 10, 15, 0, 3, 309, 0))
     assert entry_published_at({"published_parsed": parsed}) == datetime(2026, 11, 5, 10, 15, tzinfo=UTC)
@@ -216,6 +215,7 @@ def test_initial_collection_window_defaults_to_last_30_minutes(monkeypatch) -> N
             class Result:
                 def fetchone(self):
                     return None
+
             return Result()
 
     monkeypatch.delenv("INITIAL_LOOKBACK_MINUTES", raising=False)
@@ -233,6 +233,7 @@ def test_collection_window_uses_previous_success_with_overlap(monkeypatch) -> No
             class Result:
                 def fetchone(self):
                     return (previous,)
+
             return Result()
 
     monkeypatch.setenv("WINDOW_OVERLAP_MINUTES", "5")
