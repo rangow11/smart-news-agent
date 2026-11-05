@@ -63,11 +63,23 @@ export default {
           last_successful_run: checkpoint[0]?.state_value || null,
         });
       }
+      if (url.pathname === "/api/filters" && request.method === "GET") {
+        const sources = await sql`SELECT DISTINCT source_name FROM news_reports ORDER BY source_name`;
+        return json({ sources: sources.map((row) => row.source_name) });
+      }
+
       if (url.pathname === "/api/reports" && request.method === "GET") {
         const category = url.searchParams.get("category") || "";
         const status = url.searchParams.get("status") || "";
         const q = (url.searchParams.get("q") || "").slice(0, 160);
         const minScore = Math.max(0, Math.min(100, Number(url.searchParams.get("min_score") || 0)));
+        const maxScoreRaw = url.searchParams.get("max_score");
+        const maxScore = maxScoreRaw === null || maxScoreRaw === "" ? 100 : Math.max(0, Math.min(100, Number(maxScoreRaw)));
+        const source = url.searchParams.get("source") || "";
+        const dateFrom = url.searchParams.get("date_from") || "";
+        const dateTo = url.searchParams.get("date_to") || "";
+        const sort = ["score", "newest", "combined"].includes(url.searchParams.get("sort"))
+          ? url.searchParams.get("sort") : "combined";
         const requestedLimit = Number(url.searchParams.get("limit") || 50);
         const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(100, requestedLimit)) : 50;
         const requestedOffset = Number(url.searchParams.get("offset") || 0);
@@ -80,10 +92,16 @@ export default {
           FROM news_reports
           WHERE (NULLIF(${category}, '') IS NULL OR category = ${category})
             AND (NULLIF(${status}, '') IS NULL OR review_status = ${status})
-            AND total_score >= ${minScore}
+            AND (NULLIF(${source}, '') IS NULL OR source_name = ${source})
+            AND total_score >= ${minScore} AND total_score <= ${maxScore}
+            AND (NULLIF(${dateFrom}, '') IS NULL OR published_at >= ${dateFrom}::date)
+            AND (NULLIF(${dateTo}, '') IS NULL OR published_at < (${dateTo}::date + INTERVAL '1 day'))
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
                  OR summary ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%')
-          ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST, fetched_at DESC
+          ORDER BY
+            CASE WHEN ${sort} = 'newest' THEN published_at END DESC NULLS LAST,
+            CASE WHEN ${sort} = 'score' THEN total_score END DESC NULLS LAST,
+            total_score DESC NULLS LAST, published_at DESC NULLS LAST, fetched_at DESC
           LIMIT ${limit + 1} OFFSET ${offset}
         `;
         const hasMore = rows.length > limit;
