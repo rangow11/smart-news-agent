@@ -186,19 +186,22 @@ def gemini_analyze(title: str, content: str, source: str, model: str | None = No
 
 def _should_try_next_gemini(exc: Exception) -> bool:
     """Switch models only for quota/rate limits, transient outages, or unusable model output."""
+    if isinstance(exc, HTTPError):
+        if exc.code in (429, 500, 502, 503, 504):
+            return True
+        if exc.code == 403:
+            try:
+                detail = exc.read(4000).decode("utf-8", errors="replace").lower()
+            except Exception:
+                return False
+            return any(token in detail for token in ("quota", "resource_exhausted", "rate limit"))
+        return False
     if isinstance(exc, (URLError, TimeoutError, ValueError, KeyError)):
         return True
-    if not isinstance(exc, HTTPError):
-        return False
-    if exc.code in (429, 500, 502, 503, 504):
-        return True
-    if exc.code == 403:
-        try:
-            detail = exc.read(4000).decode("utf-8", errors="replace").lower()
-        except Exception:
-            return False
-        return any(token in detail for token in ("quota", "resource_exhausted", "rate limit"))
     return False
+
+
+# legacy branch removed
 
 
 def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
