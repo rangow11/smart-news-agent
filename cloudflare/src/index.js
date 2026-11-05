@@ -240,6 +240,8 @@ export default {
         const source = url.searchParams.get("source") || "";
         const dateFrom = url.searchParams.get("date_from") || "";
         const dateTo = url.searchParams.get("date_to") || "";
+        const hourSlotRaw = url.searchParams.get("hour_slot") || "";
+        const hourSlot = /^([0-9]|1[0-9]|2[0-3])$/.test(hourSlotRaw) ? Number(hourSlotRaw) : null;
         const sort = ["score", "newest", "combined"].includes(url.searchParams.get("sort"))
           ? url.searchParams.get("sort") : "combined";
         const requestedLimit = Number(url.searchParams.get("limit") || 50);
@@ -258,6 +260,7 @@ export default {
             AND total_score >= ${minScore} AND total_score <= ${maxScore}
             AND (NULLIF(${dateFrom}, '') IS NULL OR published_at >= NULLIF(${dateFrom}, '')::date)
             AND (NULLIF(${dateTo}, '') IS NULL OR published_at < (NULLIF(${dateTo}, '')::date + INTERVAL '1 day'))
+            AND (${hourSlot}::int IS NULL OR EXTRACT(HOUR FROM published_at AT TIME ZONE 'Asia/Tehran') = ${hourSlot})
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
                  OR summary ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%')
           ORDER BY
