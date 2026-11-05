@@ -8,7 +8,7 @@ on:
       - ".github/workflows/smart-news-agent.yml"
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
 
 permissions:
   contents: read
