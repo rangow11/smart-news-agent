@@ -436,9 +436,7 @@ def main() -> int:
             failed_sources,
         )
         if failed_sources:
-            raise RuntimeError(
-                f"{failed_sources} of {len(sources)} RSS sources failed; checkpoint was not advanced"
-            )
+            raise RuntimeError(f"{failed_sources} of {len(sources)} RSS sources failed; checkpoint was not advanced")
         save_successful_checkpoint(conn, run_started)
         LOG.info("Successful collection checkpoint saved: %s", run_started.isoformat())
     return 0
