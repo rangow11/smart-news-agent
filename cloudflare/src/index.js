@@ -207,6 +207,29 @@ export default {
         return json({ sources: sources.map((row) => row.source_name) });
       }
 
+      if (url.pathname === "/api/diagnostics/reports-schema" && request.method === "GET") {
+        const requiredColumns = [
+          "id", "source_name", "title", "url", "published_at", "fetched_at", "content",
+          "category", "news_track", "summary", "detailed_report", "importance",
+          "mission_relevance", "freshness", "source_quality", "total_score",
+          "is_rumor", "ai_model", "review_status", "review_note", "reviewed_at"
+        ];
+        const columns = await sql`
+          SELECT column_name, data_type
+          FROM information_schema.columns
+          WHERE table_schema = current_schema() AND table_name = 'news_reports'
+        `;
+        const available = new Map(columns.map((column) => [column.column_name, column.data_type]));
+        const missing = requiredColumns.filter((name) => !available.has(name));
+        return json({
+          table_exists: columns.length > 0,
+          required_columns: requiredColumns.map((name) => ({
+            name, exists: available.has(name), type: available.get(name) || null
+          })),
+          missing_columns: missing
+        });
+      }
+
       if (url.pathname === "/api/reports" && request.method === "GET") {
         const category = url.searchParams.get("category") || "";
         const status = url.searchParams.get("status") || "";
