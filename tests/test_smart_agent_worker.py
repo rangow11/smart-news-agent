@@ -104,7 +104,7 @@ def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
 
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
-    assert _gemini_model_chain() == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.8-flash"]
+    assert _gemini_model_chain() == ["gemma-4-26b-a4b-it", "gemma-4-31b-it", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-3-flash"]
 
 
 
@@ -244,9 +244,9 @@ def test_default_gemini_fallback_chain_includes_flash_lite(monkeypatch) -> None:
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     chain = _gemini_model_chain()
-    assert chain[0] == "gemini-3.1-flash-lite"
-    assert "gemini-3.5-flash-lite" in chain
-    assert "gemini-3.5-flash" in chain
+    assert chain[0] == "gemma-4-26b-a4b-it"
+    assert "gemma-4-31b-it" in chain
+    assert "gemini-3.1-flash-lite" in chain
 
 
 def test_analyze_falls_back_when_model_output_fails_validation(monkeypatch) -> None:
@@ -374,3 +374,58 @@ def test_validate_analysis_requires_detailed_report() -> None:
         assert "detailed report" in str(exc)
     else:
         raise AssertionError("A missing detailed report must be rejected")
+
+
+def test_batch_builder_respects_item_limit(monkeypatch) -> None:
+    from smart_agent.worker import build_news_batches
+
+    monkeypatch.setenv("GEMINI_BATCH_MAX_ITEMS", "2")
+    monkeypatch.setenv("GEMINI_BATCH_MAX_CHARS", "18000")
+    items = [
+        {"id": str(i), "source_name": "منبع", "title": f"عنوان {i}", "content": "متن خبر"}
+        for i in range(5)
+    ]
+    batches = build_news_batches(items)
+    assert [len(batch) for batch in batches] == [2, 2, 1]
+
+
+def test_gemma_model_chain_includes_both_gemma_variants(monkeypatch) -> None:
+    from smart_agent.worker import _gemini_model_chain
+
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
+    chain = _gemini_model_chain()
+    assert chain[:2] == ["gemma-4-26b-a4b-it", "gemma-4-31b-it"]
+
+
+def test_batch_response_validation_keeps_only_expected_valid_ids(monkeypatch) -> None:
+    import json
+    import smart_agent.worker as worker
+
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self, *_args): return None
+        def read(self):
+            return json.dumps({
+                "candidates": [{
+                    "content": {"parts": [{
+                        "text": json.dumps({"results": [
+                            {"id": "a", "news_track": "main", "category": worker.CATEGORIES[-1],
+                             "summary": "خلاصه", "detailed_report": "گزارش", "importance": 70,
+                             "mission_relevance": 80, "freshness": 90, "is_rumor": False},
+                            {"id": "invented", "news_track": "main", "category": worker.CATEGORIES[-1],
+                             "summary": "خلاصه", "detailed_report": "گزارش", "importance": 70,
+                             "mission_relevance": 80, "freshness": 90, "is_rumor": False}
+                        ]})
+                    }]}
+                }]
+            }).encode()
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test")
+    monkeypatch.setattr(worker, "urlopen", lambda *_args, **_kwargs: Response())
+    result, provider, model = worker.gemini_analyze_batch([
+        {"id": "a", "source_name": "منبع", "title": "عنوان", "content": "متن"}
+    ], model="gemma-4-26b-a4b-it")
+    assert list(result) == ["a"]
+    assert provider == "gemini"
+    assert model == "gemma-4-26b-a4b-it"
