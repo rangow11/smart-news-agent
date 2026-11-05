@@ -22,14 +22,15 @@ function validFeedUrl(value) {
     const h = u.hostname.toLowerCase();
     if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") ||
         h === "metadata.google.internal" || h === "::1" || h.startsWith("fc") || h.startsWith("fe80:")) return false;
-    if (/^(10\\.|127\\.|169\\.254\\.|192\\.168\\.)/.test(h)) return false;
-    const m = h.match(/^172\\.(\\d+)\\./);
+    if (/^(10\.|127\.|169\.254\.|192\.168\.)/.test(h)) return false;
+    const m = h.match(/^172\.(\d+)\./);
     if (m && Number(m[1]) >= 16 && Number(m[1]) <= 31) return false;
     return true;
   } catch { return false; }
 }
 
 async function ensureSourceSchema(sql) {
+  await sql`CREATE TABLE IF NOT EXISTS news_sources (id BIGSERIAL PRIMARY KEY, name TEXT NOT NULL, feed_url TEXT NOT NULL UNIQUE, enabled BOOLEAN NOT NULL DEFAULT TRUE, source_quality SMALLINT NOT NULL DEFAULT 50, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS language TEXT NOT NULL DEFAULT 'unknown'`;
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS region TEXT NOT NULL DEFAULT ''`;
   await sql`ALTER TABLE news_sources ADD COLUMN IF NOT EXISTS last_checked_at TIMESTAMPTZ`;
