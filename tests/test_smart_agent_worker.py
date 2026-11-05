@@ -21,6 +21,31 @@ from smart_agent.worker import (
 )
 
 
+
+def test_parse_telegram_channel_public_preview(monkeypatch) -> None:
+    from io import BytesIO
+    from smart_agent.worker import parse_telegram_channel
+
+    html = b"""
+    <div class="tgme_widget_message_wrap js-widget_message_wrap">
+      <div class="tgme_widget_message" data-post="iribnews/123">
+        <div class="tgme_widget_message_text js-message_text" dir="auto">خبر نخست<br>توضيحات خبر</div>
+        <a class="tgme_widget_message_date" href="https://t.me/iribnews/123"><time datetime="2026-11-05T10:00:00+00:00"></time></a>
+      </div>
+    </div>
+    """
+    class Response:
+        def __enter__(self): return self
+        def __exit__(self, *_args): return None
+        def read(self, _limit): return html
+    monkeypatch.setattr("smart_agent.worker.urlopen", lambda *_args, **_kwargs: Response())
+    entries = parse_telegram_channel("https://t.me/s/iribnews")
+    assert len(entries) == 1
+    assert entries[0]["title"].startswith("خبر نخست")
+    assert entries[0]["link"] == "https://t.me/iribnews/123"
+    assert entries[0]["published_parsed"] is not None
+
+
 def test_canonicalize_drops_tracking_query_and_www() -> None:
     assert canonicalize("https://www.Example.com/news/story/?utm_source=x&id=2#top") == (
         "https://example.com/news/story?id=2"
