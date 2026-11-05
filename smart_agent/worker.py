@@ -177,10 +177,9 @@ _ACTIVE_GEMINI_MODEL: str | None = None
 
 def _gemini_model_chain() -> list[str]:
     primary = os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
-    configured = os.getenv("GEMINI_FALLBACK_MODELS", "").strip()
-    configured_fallbacks = [item.strip() for item in configured.split(",") if item.strip()]
-    # Use the quota-aware built-in order first; custom models remain available afterward.
-    return list(dict.fromkeys([primary, *DEFAULT_GEMINI_FALLBACKS, *configured_fallbacks]))
+    # Keep the production chain deliberately short and tested. Ignore legacy
+    # dashboard variables that may still contain the unresponsive Gemma models.
+    return list(dict.fromkeys([primary, *DEFAULT_GEMINI_FALLBACKS]))
 
 
 def gemini_analyze(title: str, content: str, source: str, model: str | None = None) -> tuple[dict, str, str]:
