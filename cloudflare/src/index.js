@@ -20,6 +20,7 @@ function validFeedUrl(value) {
     const u = new URL(value);
     if (u.protocol !== "https:" || u.username || u.password) return false;
     const h = u.hostname.toLowerCase();
+    if ((h === "t.me" || h === "telegram.me") && /^\\/s\\/[A-Za-z0-9_]{4,}$/.test(u.pathname)) return true;
     if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") ||
         h === "metadata.google.internal" || h === "::1" || h === "[::1]" || h.startsWith("fc") || h.startsWith("fe80:")) return false;
     if (/^(10\.|127\.|169\.254\.|192\.168\.)/.test(h)) return false;
