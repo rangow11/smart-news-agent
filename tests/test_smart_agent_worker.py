@@ -17,6 +17,7 @@ from smart_agent.worker import (
     report_exists,
     score,
     validate_analysis,
+    process_feed,
 )
 
 
@@ -78,14 +79,40 @@ def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
 
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
-    assert _gemini_model_chain() == [
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.6-flash",
-        "gemini-3.5-flash",
-        "gemini-3.5-flash-lite",
-        "gemini-3.1-flash-lite",
-    ]
+    assert _gemini_model_chain() == ["gemini-3.1-flash-lite"]
+
+
+
+def test_dw_persian_retries_alternate_feed_when_primary_is_malformed(monkeypatch) -> None:
+    from smart_agent.worker import DW_PERSIAN_FALLBACK_FEED_URL
+
+    calls = []
+
+    class Parsed:
+        def __init__(self, bozo, entries):
+            self.bozo = bozo
+            self.entries = entries
+            self.bozo_exception = "malformed XML"
+
+    def fake_parse(url):
+        calls.append(url)
+        return Parsed(True, []) if len(calls) == 1 else Parsed(False, [])
+
+    monkeypatch.setattr("smart_agent.worker.feedparser.parse", fake_parse)
+
+    class Connection:
+        def commit(self):
+            return None
+
+    count = process_feed(
+        Connection(),
+        {"name": "DW Persian", "feed_url": "https://old.example/feed", "source_quality": 85, "id": 1},
+        datetime(2026, 11, 5, tzinfo=UTC),
+        datetime(2026, 11, 5, 1, tzinfo=UTC),
+    )
+
+    assert count == 0
+    assert calls == ["https://old.example/feed", DW_PERSIAN_FALLBACK_FEED_URL]
 
 
 def test_report_exists_checks_original_and_canonical_urls() -> None:
