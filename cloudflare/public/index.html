@@ -27,11 +27,7 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
 <body>
 <header><h1>عامل خبری هوشمند</h1><div class="sub">رصد و اولویت‌بندی خبرهای عمومی · نسخه آزمایشی</div></header>
 <main>
-<section id="login" class="panel">
- <div class="row"><input id="token" type="password" placeholder="کلید دسترسی داشبورد"><button id="connect">اتصال</button></div>
- <div class="sub" style="margin-top:9px">کلید را مدیر سامانه در تنظیمات Cloudflare تعریف می‌کند. کلید فقط در همین مرورگر ذخیره می‌شود.</div>
-</section>
-<section id="filters" class="panel hidden">
+<section id="filters" class="panel">
  <div class="controls">
   <input id="q" placeholder="جست‌وجو در عنوان، خلاصه و منبع">
   <select id="category"><option value="">همه دسته‌ها</option></select>
@@ -43,10 +39,10 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
   <label class="sub">از تاریخ <input id="dateFrom" type="date"></label>
   <label class="sub">تا تاریخ <input id="dateTo" type="date"></label>
  </div>
- <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><button id="logout">خروج</button><span id="stats"></span></div>
+ <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><span id="stats"></span></div>
 </section>
-<section id="overview" class="panel hidden"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>\n
-<section id="sources-panel" class="panel hidden">
+<section id="overview" class="panel"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>\n
+<section id="sources-panel" class="panel">
  <div class="row" style="justify-content:space-between"><h3>مدیریت منابع خبری</h3><button id="reloadSources">بازخوانی منابع</button></div>
  <div class="controls">
   <input id="newSourceName" placeholder="نام منبع">
@@ -59,7 +55,7 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
  <div class="sub" id="sourceMessage" style="margin:8px 0">فید RSS/Atom یا صفحه عمومی تلگرام هنگام افزودن آزمایش می‌شود. غیرفعال‌سازی منابع از اجرای بعدی اعمال خواهد شد.</div>
  <div id="sourceList"></div>
 </section>
-<section id="notifications-panel" class="panel hidden">
+<section id="notifications-panel" class="panel">
  <h3>اعلان خبرهای تازه</h3>
  <div class="sub">اعلان موبایل از طریق ntfy حتی با بسته بودن داشبورد کار می‌کند؛ اعلان مرورگر فقط وقتی داشبورد باز است فعال می‌ماند.</div>
  <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><span id="notificationState" class="sub"></span></div>
@@ -69,14 +65,14 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
 </main>
 <script>
 const categories=["شایعات","نقاط قوت و ضعف","تهدیدات و فرصت‌ها","مشکلات و صدمات","وضعیت نیروها و رقیب","سازمان‌های موازی","غیبت و فرار","خدمات شهری","وضعیت روحیه","سایر و پیشنهادات"];
-const $=id=>document.getElementById(id);let token=localStorage.getItem("sna_token")||"";
+const $=id=>document.getElementById(id);
 for(const c of categories){const o=document.createElement("option");o.value=c;o.textContent=c;$("category").append(o)}
-function auth(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"}}
+function auth(){return {"Content-Type":"application/json"}}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
-async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(r.status===401)throw Error("کلید دسترسی نامعتبر است");if(!r.ok){let data={};try{data=await r.json()}catch{}const messages={feed_url_must_be_public_https:"نشانی منبع باید HTTPS عمومی باشد.",feed_http_403:"منبع دسترسی RSS را مسدود کرد (403).",not_valid_rss_or_atom:"نشانی واردشده فید معتبر RSS یا Atom نیست.",feed_check_failed:"آزمایش فید ناموفق بود؛ اتصال یا نشانی منبع را بررسی کن.",invalid_source_fields:"نام، نشانی و امتیاز منبع را بررسی کن.",invalid_feed_url:"نشانی RSS معتبر نیست.",source_not_found:"منبع پیدا نشد."};throw Error(messages[data.error]||data.error||("خطا در ارتباط با سرویس ("+r.status+")"))}return r.json()}
-function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token);$("overview").classList.toggle("hidden",!token);$("sources-panel").classList.toggle("hidden",!token);$("notifications-panel").classList.toggle("hidden",!token)}
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(!r.ok){let data={};try{data=await r.json()}catch{}const messages={feed_url_must_be_public_https:"نشانی منبع باید HTTPS عمومی باشد.",feed_http_403:"منبع دسترسی RSS را مسدود کرد (403).",not_valid_rss_or_atom:"نشانی واردشده فید معتبر RSS یا Atom نیست.",feed_check_failed:"آزمایش فید ناموفق بود؛ اتصال یا نشانی منبع را بررسی کن.",invalid_source_fields:"نام، نشانی و امتیاز منبع را بررسی کن.",invalid_feed_url:"نشانی RSS معتبر نیست.",source_not_found:"منبع پیدا نشد."};throw Error(messages[data.error]||data.error||("خطا در ارتباط با سرویس ("+r.status+")"))}return r.json()}
+function showApp(){}
 let reportOffset=0;const pageSize=50;
-async function load(append=false){if(!token)return;showApp();if(!append){reportOffset=0;$("reports").replaceChildren()}else{$("loadMore")?.remove()}
+async function load(append=false){showApp();if(!append){reportOffset=0;$("reports").replaceChildren()}else{$("loadMore")?.remove()}
  $("message").textContent="در حال دریافت خبرها…";
  try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,source:$("source").value,min_score:$("min").value,max_score:$("max").value,sort:$("sort").value,date_from:$("dateFrom").value,date_to:$("dateTo").value,limit:String(pageSize),offset:String(reportOffset)});const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
  reportOffset+=data.count;$("stats").textContent="نمایش "+n(reportOffset)+" خبر از "+n(overview.totals.total)+" خبر ثبت‌شده · بدون سقف روزانه · مرتب‌سازی: "+$("sort").selectedOptions[0].textContent;$("message").textContent="";
@@ -89,8 +85,7 @@ async function load(append=false){if(!token)return;showApp();if(!append){reportO
  if(data.has_more){const more=el("button","load-more","نمایش ۵۰ خبر بعدی");more.id="loadMore";more.addEventListener("click",()=>load(true));$("reports").append(more)}
  }catch(e){$("message").className="error";$("message").textContent=e.message}}
 async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status",{method:"PATCH",body:JSON.stringify({status})});await load()}catch(e){$("message").textContent=e.message}}
-$("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);loadSources();load()};
-$("refresh").onclick=()=>load();$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
+$("refresh").onclick=()=>load();
 for(const id of ["category","status","source","sort","min","max","dateFrom","dateTo"])$(id).onchange=()=>load();
 
 function sourceHealth(s){
@@ -137,7 +132,7 @@ async function addSource(){
 }
 let notificationBaseline=null, notificationTimer=null;
 async function pollBrowserNotifications(){
- if(!token||!('Notification' in window)||Notification.permission!=='granted')return;
+ if(!('Notification' in window)||Notification.permission!=='granted')return;
  try{
   const p=new URLSearchParams({sort:'newest',limit:'100',offset:'0'});
   const data=await api('/api/reports?'+p);
@@ -185,5 +180,5 @@ $('reloadSources').onclick=loadSources;
 $('enableNotifications').onclick=setupNotifications;
 
 let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
-if(token){$("token").value=token;loadSources();load();startBrowserNotifications();}else showApp();
+loadSources();load();startBrowserNotifications();
 </script></body></html>
