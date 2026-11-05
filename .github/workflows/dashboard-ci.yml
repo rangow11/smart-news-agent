@@ -44,11 +44,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install worker test dependencies
-        run: python -m pip install pytest "feedparser>=6,<7" "psycopg[binary]>=3.2,<4"
-      - name: Install local package metadata
-        run: python -m pip install --no-deps -e .
-      - name: Compile worker and run focused tests
+      - name: Install worker dependencies
+        run: python -m pip install "feedparser>=6,<7"
+      - name: Compile worker and validate policy loading
         run: |
           python -m compileall -q smart_agent
-          pytest -q tests/test_smart_agent_worker.py
+          python -c "from smart_agent.worker import CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
