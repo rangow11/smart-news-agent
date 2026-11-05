@@ -55,7 +55,7 @@ async function load(){if(!token)return;showApp();$("message").textContent="در 
  $("stats").textContent="نمایش "+data.count+" خبر";$("message").textContent="";
  if(!data.count){$("reports").append(el("div","panel empty","خبری با این فیلتر پیدا نشد."));return}
  for(const r of data.reports){const card=el("article","card");const meta=el("div","meta");meta.append(el("span","badge",r.category||"بدون دسته"),el("span","badge",r.review_status||"جدید"),el("span","score","امتیاز "+(r.total_score??"—")),el("span","",r.source_name||"منبع نامشخص"));if(r.is_rumor)meta.append(el("span","badge rumor","شایعه / ادعای تأییدنشده"));
- const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const link=el("a","", "مشاهده گزارش منبع");link.href=r.url;link.target="_blank";link.rel="noopener noreferrer";
+ const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const link=el("a","", "مشاهده گزارش منبع");try{const sourceUrl=new URL(r.url);if(!["http:","https:"].includes(sourceUrl.protocol))throw Error("invalid scheme");link.href=sourceUrl.href;link.target="_blank";link.rel="noopener noreferrer"}catch{link.textContent="پیوند منبع نامعتبر است";link.removeAttribute("href")}
  const date=el("div","meta",r.published_at?new Date(r.published_at).toLocaleString("fa-IR"):"زمان انتشار نامشخص");
  const actions=el("div","actions");for(const st of data.statuses){const b=el("button",st===r.review_status?"active":"",st);b.addEventListener("click",()=>updateStatus(r.id,st));actions.append(b)}
  card.append(meta,title,summary,link,date,actions);$("reports").append(card)}
