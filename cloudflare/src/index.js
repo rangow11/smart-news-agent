@@ -86,7 +86,7 @@ export default {
         const offset = Number.isFinite(requestedOffset) ? Math.max(0, requestedOffset) : 0;
         const rows = await sql`
           SELECT id, source_name, title, url, published_at, fetched_at, content,
-                 category, news_track, summary, importance, mission_relevance, freshness,
+                 category, news_track, summary, detailed_report, importance, mission_relevance, freshness,
                  source_quality, total_score, is_rumor, ai_model, review_status,
                  review_note, reviewed_at
           FROM news_reports
