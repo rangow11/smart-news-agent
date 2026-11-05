@@ -189,9 +189,9 @@
     "region": "IR"
   },
   {
-    "name": "شبکه استانی زنجان - خبرگزاری صداوسیما",
-    "feed_url": "https://zanjan.iribnews.ir/fa/rss/allnews?",
-    "source_quality": 75,
+    "name": "پایش استانی زنجان - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%D8%B2%D9%86%D8%AC%D8%A7%D9%86%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
@@ -238,9 +238,9 @@
     "region": "IR"
   },
   {
-    "name": "شبکه استانی کرمان - خبرگزاری صداوسیما",
-    "feed_url": "https://kerman.iribnews.ir/fa/rss/allnews?",
-    "source_quality": 75,
+    "name": "پایش استانی کرمان - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
@@ -252,9 +252,9 @@
     "region": "IR"
   },
   {
-    "name": "شبکه استانی کهگیلویه و بویراحمد - خبرگزاری صداوسیما",
-    "feed_url": "https://dena.iribnews.ir/fa/rss/allnews?",
-    "source_quality": 75,
+    "name": "پایش استانی کهگیلویه و بویراحمد - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%DA%A9%D9%87%DA%AF%DB%8C%D9%84%D9%88%DB%8C%D9%87%20%D9%88%20%D8%A8%D9%88%DB%8C%D8%B1%D8%A7%D8%AD%D9%85%D8%AF%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
     "language": "fa",
     "region": "IR"
   },
@@ -267,7 +267,7 @@
   },
   {
     "name": "شبکه استانی گیلان - خبرگزاری صداوسیما",
-    "feed_url": "https://guilan.iribnews.ir/fa/rss/allnews?",
+    "feed_url": "https://t.me/s/tv_baran",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
