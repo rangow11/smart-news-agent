@@ -152,6 +152,11 @@ async function pollBrowserNotifications(){
   }
  }catch(e){console.warn('notification poll failed',e)}
 }
+function startBrowserNotifications(){
+ if(!('Notification' in window)||Notification.permission!=='granted'||notificationTimer)return;
+ notificationBaseline=null;pollBrowserNotifications();
+ notificationTimer=setInterval(pollBrowserNotifications,120000);
+}
 async function setupNotifications(){
  try{
   if('Notification' in window){
@@ -170,8 +175,7 @@ async function setupNotifications(){
   const copy=el('button','','کپی موضوع');copy.onclick=()=>navigator.clipboard.writeText(current.topic);$('ntfyInfo').append(copy);
   $('ntfyInfo').append(el('div','sub','برای اعلان روی موبایل، برنامه ntfy را نصب کنید و همین موضوع را در آن Subscribe کنید. عامل خبری پس از هر اجرای موفقِ دارای خبر تازه، یک اعلان خلاصه می‌فرستد.'));
   if(notificationTimer)clearInterval(notificationTimer);
-  notificationBaseline=null;await pollBrowserNotifications();
-  notificationTimer=setInterval(pollBrowserNotifications,120000);
+  notificationTimer=null;startBrowserNotifications();
  }catch(e){$('notificationState').textContent='خطا: '+e.message}
 }
 $('addSource').onclick=addSource;
@@ -179,5 +183,5 @@ $('reloadSources').onclick=loadSources;
 $('enableNotifications').onclick=setupNotifications;
 
 let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
-if(token){$("token").value=token;loadSources();load();}else showApp();
+if(token){$("token").value=token;loadSources();load();startBrowserNotifications();}else showApp();
 </script></body></html>
