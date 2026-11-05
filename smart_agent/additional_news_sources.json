@@ -33,5 +33,40 @@
     "name": "Haaretz Israel News",
     "feed_url": "https://www.haaretz.com/srv/israel-news-rss",
     "source_quality": 80
+  },
+  {
+    "name": "Iran International",
+    "feed_url": "https://www.iranintl.com/feed",
+    "source_quality": 80
+  },
+  {
+    "name": "Axios Top Stories",
+    "feed_url": "https://api.axios.com/feed/top/",
+    "source_quality": 85
+  },
+  {
+    "name": "The New York Times - Middle East",
+    "feed_url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml",
+    "source_quality": 90
+  },
+  {
+    "name": "IRIB News - Provincial Centers and National",
+    "feed_url": "https://www.irib-news.ir/fa/rss/allnews?",
+    "source_quality": 75
+  },
+  {
+    "name": "Fars News (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Afarsnews.ir&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65
+  },
+  {
+    "name": "Channel 13 Israel (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3A13tv.co.il%2Fnews&hl=he&gl=IL&ceid=IL%3Ahe",
+    "source_quality": 70
+  },
+  {
+    "name": "Clash Report (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Aclashreport.com&hl=en-US&gl=US&ceid=US%3Aen",
+    "source_quality": 70
   }
 ]
