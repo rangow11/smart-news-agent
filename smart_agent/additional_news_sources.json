@@ -1,0 +1,37 @@
+[
+  {
+    "name": "BBC Arabic",
+    "feed_url": "https://feeds.bbci.co.uk/arabic/rss.xml",
+    "source_quality": 85
+  },
+  {
+    "name": "Al Jazeera Arabic",
+    "feed_url": "https://www.aljazeera.net/rss",
+    "source_quality": 80
+  },
+  {
+    "name": "Ynet Hebrew",
+    "feed_url": "https://www.ynet.co.il/Integration/StoryRss2.xml",
+    "source_quality": 75
+  },
+  {
+    "name": "Maariv Hebrew",
+    "feed_url": "https://www.maariv.co.il/Rss/RssFeedsMivzakiChadashot",
+    "source_quality": 75
+  },
+  {
+    "name": "The Times of Israel",
+    "feed_url": "https://www.timesofisrael.com/feed/",
+    "source_quality": 80
+  },
+  {
+    "name": "The Jerusalem Post Israel News",
+    "feed_url": "https://www.jpost.com/rss/rssfeedsisraelnews.aspx",
+    "source_quality": 75
+  },
+  {
+    "name": "Haaretz Israel News",
+    "feed_url": "https://www.haaretz.com/srv/israel-news-rss",
+    "source_quality": 80
+  }
+]
