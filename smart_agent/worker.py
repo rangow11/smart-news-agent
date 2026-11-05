@@ -304,8 +304,11 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
             eligible_entries.append(entry)
     LOG.info(
         "%s: %d entries in window %s..%s (%d without publication date skipped)",
-        source["name"], len(eligible_entries), window_start.isoformat(),
-        window_end.isoformat(), missing_dates,
+        source["name"],
+        len(eligible_entries),
+        window_start.isoformat(),
+        window_end.isoformat(),
+        missing_dates,
     )
     for entry in eligible_entries:
         title = (entry.get("title") or "").strip()
@@ -329,9 +332,7 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
             # Source reliability is operator-configured, never guessed by the LLM.
             result["source_quality"] = source["source_quality"]
             total = score(result)
-            published = None
-            if entry.get("published_parsed"):
-                published = datetime(*entry.published_parsed[:6], tzinfo=UTC)
+            published = entry_published_at(entry)
             with conn.transaction(), conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO news_reports
