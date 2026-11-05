@@ -890,7 +890,7 @@ def main() -> int:
         for batch_index, batch in enumerate(batches, start=1):
             if batch_index > 1:
                 # Keep multiple requests inside the low Gemma input-TPM budget.
-                time.sleep(max(0, int(os.getenv("GEMINI_BATCH_PAUSE_SECONDS", "25"))))
+                time.sleep(max(0, int(os.getenv("GEMINI_BATCH_PAUSE_SECONDS", "35"))))
             try:
                 prompt_chars = len(_batch_user_prompt(batch))
                 LOG.info(
