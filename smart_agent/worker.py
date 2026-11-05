@@ -163,7 +163,13 @@ def canonicalize(url: str) -> str:
 
 
 DEFAULT_GEMINI_MODEL = "gemini-3.8-flash"
-DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = ("gemini-3.5-flash-lite",)
+DEFAULT_GEMINI_FALLBACKS: tuple[str, ...] = (
+    "gemini-3.5-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+)
 DW_PERSIAN_FALLBACK_FEED_URL = "https://rss.dw.com/xml/rss-per-all_volltext"
 _ACTIVE_GEMINI_MODEL: str | None = None
 
@@ -207,7 +213,7 @@ def gemini_analyze(title: str, content: str, source: str, model: str | None = No
 def _should_try_next_gemini(exc: Exception) -> bool:
     """Switch models only for quota/rate limits, transient outages, or unusable model output."""
     if isinstance(exc, HTTPError):
-        if exc.code in (404, 500, 502, 503, 504):
+        if exc.code in (404, 429, 500, 502, 503, 504):
             return True
         if exc.code == 403:
             try:
