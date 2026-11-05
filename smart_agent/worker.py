@@ -313,7 +313,7 @@ def extract_feed_text(entry) -> str:
     cleaned = []
     for value in candidates:
         value = re.sub(r"<[^>]+>", " ", value)
-        value = re.sub(r"\\s+", " ", value).strip()
+        value = re.sub(r"\s+", " ", value).strip()
         if value:
             cleaned.append(value)
     return max(cleaned, key=len, default="")[:12000]
