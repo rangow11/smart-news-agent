@@ -429,7 +429,8 @@ def process_feed(conn, source: dict, window_start: datetime, window_end: datetim
 
 
 def configure_sources(conn) -> None:
-    """Upsert public RSS sources supplied as a JSON GitHub Actions variable."""
+    """Upsert versioned and operator-configured public RSS sources."""
+    # Operator overrides remain authoritative across scheduled runs.
     raw = os.getenv("NEWS_SOURCES_JSON", "").strip()
     try:
         configured_sources = json.loads(raw) if raw else []
