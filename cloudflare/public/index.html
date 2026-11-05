@@ -10,7 +10,7 @@ header{position:sticky;top:0;background:#101a2beF;border-bottom:1px solid #29364
 h1{font-size:20px;margin:0 0 6px}.sub{font-size:12px;color:#9aa9bf}
 main{max-width:1100px;margin:auto;padding:18px}
 .panel{background:#121e31;border:1px solid #293950;border-radius:14px;padding:14px;margin-bottom:14px}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}\n.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.stat{background:#0c1728;border:1px solid #293950;border-radius:10px;padding:12px}.stat b{display:block;font-size:21px;margin-bottom:5px}.stat span{font-size:12px;color:#9eb0c8}
 input,select,button{font:inherit;border-radius:9px;border:1px solid #3a4b63;background:#0c1728;color:#e8edf5;padding:10px;min-width:0}
 button{cursor:pointer;background:#245a89;border-color:#3979ae}button:hover{filter:brightness(1.15)}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row input{flex:1;min-width:190px}
@@ -40,7 +40,7 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
  </div>
  <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><button id="logout">خروج</button><span id="stats"></span></div>
 </section>
-<div id="message" class="sub"></div><section id="reports"></section>
+<section id="overview" class="panel hidden"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>\n<div id="message" class="sub"></div><section id="reports"></section>
 </main>
 <script>
 const categories=["شایعات","نقاط قوت و ضعف","تهدیدات و فرصت‌ها","مشکلات و صدمات","وضعیت نیروها و رقیب","سازمان‌های موازی","غیبت و فرار","خدمات شهری","وضعیت روحیه","سایر و پیشنهادات"];
@@ -49,7 +49,7 @@ for(const c of categories){const o=document.createElement("option");o.value=c;o.
 function auth(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"}}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
 async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(r.status===401)throw Error("کلید دسترسی نامعتبر است");if(!r.ok)throw Error("خطا در ارتباط با سرویس ("+r.status+")");return r.json()}
-function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token)}
+function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token);$("overview").classList.toggle("hidden",!token)}
 async function load(){if(!token)return;showApp();$("message").textContent="در حال دریافت خبرها…";$("reports").replaceChildren();
  try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,min_score:$("min").value,limit:"50"});const data=await api("/api/reports?"+p);
  $("stats").textContent="نمایش "+data.count+" خبر";$("message").textContent="";
