@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dashboard-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,7 +53,7 @@ jobs:
       - name: Compile worker and validate policy loading
         run: |
           python -m compileall -q smart_agent
-          python -c "from smart_agent.worker import CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"detailed_report\": \"گزارش تفصیلی با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
+          python -c "from smart_agent.worker import ADDITIONAL_NEWS_SOURCES, CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; assert len(ADDITIONAL_NEWS_SOURCES) >= 40; assert all(s.get(\"language\") in {\"fa\",\"en\",\"ar\",\"he\"} and s.get(\"region\") for s in ADDITIONAL_NEWS_SOURCES); validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"detailed_report\": \"گزارش تفصیلی با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
           python -m pytest -o addopts= -q --noconftest tests/test_smart_agent_worker.py
 
   deploy-dashboard:
