@@ -785,7 +785,7 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
         method="POST",
     )
     try:
-        with urlopen(request, timeout=12) as response:
+        with urlopen(request, timeout=12) as response:  # noqa: S310
             LOG.info("ntfy notification sent: HTTP %s", response.status)
     except Exception as exc:
         # Notification delivery must never roll back successfully collected news.
