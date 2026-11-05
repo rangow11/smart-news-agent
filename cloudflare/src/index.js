@@ -72,6 +72,27 @@ async function verifyFeedUrl(value) {
 }
 
 export default {
+  async scheduled(controller, env, ctx) {
+    if (!env.GITHUB_ACTIONS_TOKEN) {
+      console.error("GITHUB_ACTIONS_TOKEN is not configured; scheduled dispatch skipped");
+      return;
+    }
+    const response = await fetch("https://api.github.com/repos/rangow11/smart-news-agent/actions/workflows/smart-news-agent.yml/dispatches", {
+      method: "POST",
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "Authorization": `Bearer ${env.GITHUB_ACTIONS_TOKEN}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "smart-news-agent-cloudflare-cron"
+      },
+      body: JSON.stringify({ ref: "main" })
+    });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`GitHub workflow dispatch failed: HTTP ${response.status} ${body.slice(0, 500)}`);
+    }
+    console.log("Smart News Agent workflow dispatched from Cloudflare Cron");
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
