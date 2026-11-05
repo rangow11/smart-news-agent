@@ -21,7 +21,7 @@ button{cursor:pointer;background:#245a89;border-color:#3979ae}button:hover{filte
 .badge.rumor{background:#633b27;color:#ffd2a8}.score{font-weight:bold;color:#9bd6ff}
 a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .actions button{font-size:12px;padding:8px 10px}.actions button.active{background:#23734d;border-color:#3ca875}
-.hidden{display:none}.error{color:#ff9e9e}.empty{text-align:center;color:#9eacc0;padding:35px}
+.hidden{display:none}.error{color:#ff9e9e}.empty{text-align:center;color:#9eacc0;padding:35px}.load-more{display:block;width:100%;margin:14px 0;padding:12px}
 @media(max-width:600px){header{padding:13px}main{padding:12px}.card{padding:12px}.card h2{font-size:15px}}
 </style></head>
 <body>
@@ -50,20 +50,23 @@ function auth(){return {Authorization:"Bearer "+token,"Content-Type":"applicatio
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
 async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(r.status===401)throw Error("کلید دسترسی نامعتبر است");if(!r.ok)throw Error("خطا در ارتباط با سرویس ("+r.status+")");return r.json()}
 function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token);$("overview").classList.toggle("hidden",!token)}
-async function load(){if(!token)return;showApp();$("message").textContent="در حال دریافت خبرها…";$("reports").replaceChildren();
- try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,min_score:$("min").value,limit:"50"});const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
- $("stats").textContent="نمایش "+data.count+" خبر";$("message").textContent="";
- if(!data.count){$("reports").append(el("div","panel empty","خبری با این فیلتر پیدا نشد."));return}
+let reportOffset=0;const pageSize=50;
+async function load(append=false){if(!token)return;showApp();if(!append){reportOffset=0;$("reports").replaceChildren()}else{$("loadMore")?.remove()}
+ $("message").textContent="در حال دریافت خبرها…";
+ try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,min_score:$("min").value,limit:String(pageSize),offset:String(reportOffset)});const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
+ reportOffset+=data.count;$("stats").textContent="نمایش "+n(reportOffset)+" خبر از "+n(overview.totals.total)+" خبر ثبت‌شده · مرتب‌سازی بر اساس امتیاز";$("message").textContent="";
+ if(!data.count&&!append){$("reports").append(el("div","panel empty","خبری با این فیلتر پیدا نشد."));return}
  for(const r of data.reports){const card=el("article","card");const meta=el("div","meta");meta.append(el("span","badge",r.category||"بدون دسته"),el("span","badge",r.review_status||"جدید"),el("span","score","امتیاز "+(r.total_score??"—")),el("span","",r.source_name||"منبع نامشخص"));if(r.is_rumor)meta.append(el("span","badge rumor","شایعه / ادعای تأییدنشده"));
  const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const link=el("a","", "مشاهده گزارش منبع");try{const sourceUrl=new URL(r.url);if(!["http:","https:"].includes(sourceUrl.protocol))throw Error("invalid scheme");link.href=sourceUrl.href;link.target="_blank";link.rel="noopener noreferrer"}catch{link.textContent="پیوند منبع نامعتبر است";link.removeAttribute("href")}
  const date=el("div","meta",r.published_at?new Date(r.published_at).toLocaleString("fa-IR"):"زمان انتشار نامشخص");
  const actions=el("div","actions");for(const st of data.statuses){const b=el("button",st===r.review_status?"active":"",st);b.addEventListener("click",()=>updateStatus(r.id,st));actions.append(b)}
  card.append(meta,title,summary,link,date,actions);$("reports").append(card)}
+ if(data.has_more){const more=el("button","load-more","نمایش ۵۰ خبر بعدی");more.id="loadMore";more.addEventListener("click",()=>load(true));$("reports").append(more)}
  }catch(e){$("message").className="error";$("message").textContent=e.message}}
 async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status",{method:"PATCH",body:JSON.stringify({status})});await load()}catch(e){$("message").textContent=e.message}}
 $("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);load()};
-$("refresh").onclick=load;$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
-for(const id of ["category","status","min"])$(id).onchange=load;
-let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(load,350)};
+$("refresh").onclick=()=>load();$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
+for(const id of ["category","status","min"])$(id).onchange=()=>load();
+let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
 if(token){$("token").value=token;load()}else showApp();
 </script></body></html>
