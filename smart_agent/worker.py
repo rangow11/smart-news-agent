@@ -612,6 +612,37 @@ def main() -> int:
             if statement.strip():
                 conn.execute(statement)
         conn.commit()
+        run_started = datetime.now(UTC)
+        if os.getenv("GITHUB_EVENT_NAME") == "schedule":
+            interval_row = conn.execute(
+                "SELECT setting_value FROM agent_settings WHERE setting_key = %s",
+                ("run_interval_minutes",),
+            ).fetchone()
+            interval_minutes = int(interval_row["setting_value"]) if interval_row else 30
+            last_run_row = conn.execute(
+                "SELECT state_value FROM agent_state WHERE state_key = %s",
+                ("last_worker_run",),
+            ).fetchone()
+            if last_run_row:
+                last_run = last_run_row["state_value"]
+                if last_run.tzinfo is None:
+                    last_run = last_run.replace(tzinfo=UTC)
+                elapsed = (run_started - last_run).total_seconds() / 60
+                if elapsed < interval_minutes:
+                    LOG.info(
+                        "Scheduled invocation skipped: %.1f minutes since previous run; configured interval is %d minutes",
+                        elapsed,
+                        interval_minutes,
+                    )
+                    return 0
+        conn.execute(
+            """INSERT INTO agent_state (state_key, state_value)
+               VALUES (%s, %s)
+               ON CONFLICT (state_key) DO UPDATE
+               SET state_value = EXCLUDED.state_value, updated_at = NOW()""",
+            ("last_worker_run", run_started),
+        )
+        conn.commit()
         configure_sources(conn)
         sources = conn.execute(
             """SELECT id, name, feed_url, COALESCE(operator_quality_override, source_quality) AS source_quality,
@@ -620,7 +651,6 @@ def main() -> int:
                WHERE COALESCE(operator_enabled, enabled) = TRUE
                ORDER BY id"""
         ).fetchall()
-        run_started = datetime.now(UTC)
         window_start, window_end = collection_window(conn, run_started)
         LOG.info("Collection window: %s .. %s", window_start.isoformat(), window_end.isoformat())
         total = 0
