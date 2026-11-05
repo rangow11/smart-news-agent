@@ -127,7 +127,7 @@
   },
   {
     "name": "شبکه استانی البرز - خبرگزاری صداوسیما",
-    "feed_url": "https://alborz.iribnews.ir/fa/rss/allnews?",
+    "feed_url": "https://t.me/s/alborz_iribnews",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -155,7 +155,7 @@
   },
   {
     "name": "شبکه استانی چهارمحال و بختیاری - خبرگزاری صداوسیما",
-    "feed_url": "https://chb.iribnews.ir/fa/rss/allnews?",
+    "feed_url": "https://t.me/s/newschbirib",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -274,7 +274,7 @@
   },
   {
     "name": "شبکه استانی لرستان - خبرگزاری صداوسیما",
-    "feed_url": "https://lorestan.iribnews.ir/fa/rss/allnews?",
+    "feed_url": "https://t.me/s/iriblor",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
@@ -302,7 +302,7 @@
   },
   {
     "name": "شبکه استانی همدان - خبرگزاری صداوسیما",
-    "feed_url": "https://hamedan.iribnews.ir/fa/rss/allnews?",
+    "feed_url": "https://t.me/s/HamedanIRIBnews",
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
