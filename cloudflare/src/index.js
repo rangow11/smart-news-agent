@@ -58,6 +58,9 @@ async function verifyFeedUrl(value) {
     if (!response.ok) return { ok: false, error: "feed_http_" + response.status };
     const type = response.headers.get("content-type") || "";
     const body = (await response.text()).slice(0, 1000000);
+    const checkedUrl = new URL(value);
+    if ((checkedUrl.hostname === "t.me" || checkedUrl.hostname === "telegram.me") &&
+        body.includes("tgme_widget_message_wrap")) return { ok: true, content_type: type };
     if (!/(<rss[\s>]|<feed[\s>]|<rdf:RDF[\s>])/i.test(body)) {
       return { ok: false, error: "not_valid_rss_or_atom" };
     }
