@@ -351,23 +351,23 @@ def parse_telegram_channel(url: str) -> list[dict]:
     with urlopen(request, timeout=15) as response:  # noqa: S310
         document = response.read(2_000_000).decode("utf-8", errors="replace")
     starts = [match.start() for match in re.finditer(
-        r'<div[^>]+class="[^"]*\\btgme_widget_message_wrap\\b[^"]*"[^>]*>', document
+        r'<div[^>]+class="[^"]*\btgme_widget_message_wrap\b[^"]*"[^>]*>', document
     )]
     entries = []
     for index, start in enumerate(starts):
         end = starts[index + 1] if index + 1 < len(starts) else len(document)
         block = document[start:end]
         text_match = re.search(
-            r'<div[^>]+class="[^"]*\\btgme_widget_message_text\\b[^"]*"[^>]*>(.*?)</div>',
+            r'<div[^>]+class="[^"]*\btgme_widget_message_text\b[^"]*"[^>]*>(.*?)</div>',
             block,
             re.S,
         )
         date_match = re.search(r'<time[^>]+datetime="([^"]+)"', block)
         if not text_match or not date_match:
             continue
-        content = re.sub(r"<br\\s*/?>", "\\n", text_match.group(1), flags=re.I)
+        content = re.sub(r"<br\s*/?>", "\n", text_match.group(1), flags=re.I)
         content = unescape(re.sub(r"<[^>]+>", " ", content))
-        content = re.sub(r"\\s+", " ", content).strip()
+        content = re.sub(r"\s+", " ", content).strip()
         if not content:
             continue
         try:
@@ -375,7 +375,7 @@ def parse_telegram_channel(url: str) -> list[dict]:
         except ValueError:
             continue
         link_match = re.search(
-            r'<a[^>]+class="[^"]*\\btgme_widget_message_date\\b[^"]*"[^>]+href="([^"]+)"',
+            r'<a[^>]+class="[^"]*\btgme_widget_message_date\b[^"]*"[^>]+href="([^"]+)"',
             block,
         )
         post_match = re.search(r'data-post="([^"]+)"', block)
