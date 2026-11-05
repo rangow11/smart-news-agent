@@ -1,8 +1,8 @@
 """Unit tests for the standalone cloud worker."""
 
 from datetime import UTC, datetime, timedelta
-from time import struct_time
 from io import BytesIO
+from time import struct_time
 from urllib.error import HTTPError, URLError
 
 from smart_agent.worker import (
@@ -10,8 +10,8 @@ from smart_agent.worker import (
     _analysis_input,
     _should_try_next_gemini,
     canonicalize,
-    configure_sources,
     collection_window,
+    configure_sources,
     entry_published_at,
     gemini_analyze,
     report_exists,
