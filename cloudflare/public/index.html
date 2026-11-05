@@ -26,7 +26,7 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
 @media(max-width:600px){header{padding:13px}main{padding:12px}.card{padding:12px}.card h2{font-size:15px}}
 </style></head>
 <body>
-<header><h1>عامل خبری هوشمند</h1><div class="sub">مرکز رصد، اولویت‌بندی و بررسی خبرها</div><nav class="tabs"><button class="tab active" data-tab="news">اخبار</button><button class="tab" data-tab="sources">منابع خبری</button><button class="tab" data-tab="notifications">اعلان‌ها</button></nav></header>
+<header><h1>عامل خبری هوشمند</h1><div class="sub">مرکز رصد، اولویت‌بندی و بررسی خبرها</div><nav class="tabs"><button class="tab active" data-tab="news">اخبار</button><button class="tab" data-tab="sources">منابع خبری</button><button class="tab" data-tab="notifications">اعلان‌ها</button><button class="tab" data-tab="settings">تنظیمات</button></nav></header>
 <main>
 <section id="filters" class="panel">
  <div class="controls">
@@ -63,6 +63,17 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
  <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><span id="notificationState" class="sub"></span></div>
  <div id="ntfyInfo" class="sub" style="margin-top:10px"></div>
 </section>
+<section id="settings-panel" class="panel tab-hidden">
+ <h3>تنظیمات اجرای عامل خبری</h3>
+ <div class="sub">فاصله زمانی بین اجراهای خودکار را بر حسب دقیقه تعیین کن. زمان‌بند پایه هر ۵ دقیقه بررسی می‌کند؛ مقدار انتخابی باید مضربی از ۵ باشد.</div>
+ <div class="row" style="margin-top:12px">
+  <label class="sub">فاصله اجرا (دقیقه)
+   <input id="runIntervalMinutes" type="number" min="5" max="1440" step="5" value="30" style="width:130px">
+  </label>
+  <button id="saveRunSettings">ذخیره تنظیمات</button>
+ </div>
+ <div id="runSettingsMessage" class="sub" style="margin-top:10px">در حال دریافت تنظیمات…</div>
+</section>
 <div id="message" class="sub"></div><section id="reports"></section><div id="pager" class="pager"></div>
 </main>
 <script>
@@ -75,7 +86,7 @@ async function api(path,options={}){const r=await fetch(path,{...options,headers
 function showApp(){}
 let reportOffset=0;const pageSize=20;let currentPage=0;let currentHasMore=false;
 for(let hour=0;hour<24;hour++){const o=document.createElement("option");o.value=String(hour);o.textContent=String(hour).padStart(2,"0")+":۰۰ تا "+String((hour+1)%24).padStart(2,"0")+":۰۰";$("hourSlot").append(o)}
-document.querySelectorAll("[data-tab]").forEach(t=>t.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===t));for(const id of ["filters","overview","message","reports","pager"])$(id).classList.toggle("tab-hidden",t.dataset.tab!=="news");$("sources-panel").classList.toggle("tab-hidden",t.dataset.tab!=="sources");$("notifications-panel").classList.toggle("tab-hidden",t.dataset.tab!=="notifications")}));
+document.querySelectorAll("[data-tab]").forEach(t=>t.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===t));for(const id of ["filters","overview","message","reports","pager"])$(id).classList.toggle("tab-hidden",t.dataset.tab!=="news");$("sources-panel").classList.toggle("tab-hidden",t.dataset.tab!=="sources");$("notifications-panel").classList.toggle("tab-hidden",t.dataset.tab!=="notifications");$("settings-panel").classList.toggle("tab-hidden",t.dataset.tab!=="settings")}));
 document.querySelector("[data-tab=news]").click();
 async function load(append=false){showApp();if(!append){currentPage=0;reportOffset=0;} $("reports").replaceChildren();
  $("message").textContent="در حال دریافت خبرها…";
@@ -183,7 +194,26 @@ async function setupNotifications(){
 $('addSource').onclick=addSource;
 $('reloadSources').onclick=loadSources;
 $('enableNotifications').onclick=setupNotifications;
+async function loadRunSettings(){
+ try{
+  const data=await api('/api/settings');
+  $('runIntervalMinutes').value=data.run_interval_minutes||30;
+  const last=data.last_run_at?new Date(data.last_run_at).toLocaleString('fa-IR'):'هنوز اجرایی ثبت نشده';
+  $('runSettingsMessage').textContent='فاصله ذخیره‌شده: '+data.run_interval_minutes+' دقیقه · بررسی زمان‌بند: هر '+data.scheduler_tick_minutes+' دقیقه · آخرین شروع اجرا: '+last;
+ }catch(e){$('runSettingsMessage').textContent='خطا در دریافت تنظیمات: '+e.message}
+}
+async function saveRunSettings(){
+ const value=Number($('runIntervalMinutes').value);
+ if(!Number.isInteger(value)||value<5||value>1440||value%5!==0){
+  $('runSettingsMessage').textContent='عدد باید مضربی از ۵ و بین ۵ تا ۱۴۴۰ دقیقه باشد.';return;
+ }
+ try{
+  const data=await api('/api/settings',{method:'POST',body:JSON.stringify({run_interval_minutes:value})});
+  $('runSettingsMessage').textContent='تنظیمات ذخیره شد: اجرای خودکار هر '+data.run_interval_minutes+' دقیقه. اجرای بعدی در اولین نوبت زمان‌بند انجام می‌شود.';
+ }catch(e){$('runSettingsMessage').textContent='خطا در ذخیره تنظیمات: '+e.message}
+}
+$('saveRunSettings').onclick=saveRunSettings;
 
 let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
-loadSources();load();startBrowserNotifications();
+loadSources();load();loadRunSettings();startBrowserNotifications();
 </script></body></html>
