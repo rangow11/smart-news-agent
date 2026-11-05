@@ -36,7 +36,12 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
   <input id="q" placeholder="جست‌وجو در عنوان، خلاصه و منبع">
   <select id="category"><option value="">همه دسته‌ها</option></select>
   <select id="status"><option value="">همه وضعیت‌ها</option><option>جدید</option><option>انتخاب‌شده</option><option>ارسال‌شده</option><option>منتشرشده</option><option>ردشده</option><option>ذخیره‌شده برای بررسی</option></select>
-  <select id="min"><option value="0">همه امتیازها</option><option value="65">۶۵ به بالا</option><option value="75">۷۵ به بالا</option><option value="85">۸۵ به بالا</option></select>
+  <select id="source"><option value="">همه خبرگزاری‌ها</option></select>
+  <select id="sort"><option value="combined">ترکیبی: امتیاز + تازگی</option><option value="score">بالاترین امتیاز</option><option value="newest">جدیدترین خبرها</option></select>
+  <select id="min"><option value="0">حداقل امتیاز: همه</option><option value="50">۵۰ به بالا</option><option value="65">۶۵ به بالا</option><option value="75">۷۵ به بالا</option><option value="85">۸۵ به بالا</option></select>
+  <select id="max"><option value="100">حداکثر امتیاز: همه</option><option value="90">۹۰</option><option value="80">۸۰</option><option value="70">۷۰</option></select>
+  <label class="sub">از تاریخ <input id="dateFrom" type="date"></label>
+  <label class="sub">تا تاریخ <input id="dateTo" type="date"></label>
  </div>
  <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><button id="logout">خروج</button><span id="stats"></span></div>
 </section>
@@ -53,8 +58,8 @@ function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").c
 let reportOffset=0;const pageSize=50;
 async function load(append=false){if(!token)return;showApp();if(!append){reportOffset=0;$("reports").replaceChildren()}else{$("loadMore")?.remove()}
  $("message").textContent="در حال دریافت خبرها…";
- try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,min_score:$("min").value,limit:String(pageSize),offset:String(reportOffset)});const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
- reportOffset+=data.count;$("stats").textContent="نمایش "+n(reportOffset)+" خبر از "+n(overview.totals.total)+" خبر ثبت‌شده · مرتب‌سازی بر اساس امتیاز";$("message").textContent="";
+ try{const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,source:$("source").value,min_score:$("min").value,max_score:$("max").value,sort:$("sort").value,date_from:$("dateFrom").value,date_to:$("dateTo").value,limit:String(pageSize),offset:String(reportOffset)});const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
+ reportOffset+=data.count;$("stats").textContent="نمایش "+n(reportOffset)+" خبر از "+n(overview.totals.total)+" خبر ثبت‌شده · بدون سقف روزانه · مرتب‌سازی: "+$("sort").selectedOptions[0].textContent;$("message").textContent="";
  if(!data.count&&!append){$("reports").append(el("div","panel empty","خبری با این فیلتر پیدا نشد."));return}
  for(const r of data.reports){const card=el("article","card");const meta=el("div","meta");meta.append(el("span","badge",r.category||"بدون دسته"),el("span","badge",r.review_status||"جدید"),el("span","score","امتیاز "+(r.total_score??"—")),el("span","",r.source_name||"منبع نامشخص"));if(r.is_rumor)meta.append(el("span","badge rumor","شایعه / ادعای تأییدنشده"));
  const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const link=el("a","", "مشاهده گزارش منبع");try{const sourceUrl=new URL(r.url);if(!["http:","https:"].includes(sourceUrl.protocol))throw Error("invalid scheme");link.href=sourceUrl.href;link.target="_blank";link.rel="noopener noreferrer"}catch{link.textContent="پیوند منبع نامعتبر است";link.removeAttribute("href")}
@@ -64,9 +69,10 @@ async function load(append=false){if(!token)return;showApp();if(!append){reportO
  if(data.has_more){const more=el("button","load-more","نمایش ۵۰ خبر بعدی");more.id="loadMore";more.addEventListener("click",()=>load(true));$("reports").append(more)}
  }catch(e){$("message").className="error";$("message").textContent=e.message}}
 async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status",{method:"PATCH",body:JSON.stringify({status})});await load()}catch(e){$("message").textContent=e.message}}
-$("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);load()};
+$("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);loadSources();load()};
 $("refresh").onclick=()=>load();$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
-for(const id of ["category","status","min"])$(id).onchange=()=>load();
+for(const id of ["category","status","source","sort","min","max","dateFrom","dateTo"])$(id).onchange=()=>load();
+async function loadSources(){try{const data=await api("/api/filters");for(const s of data.sources){const o=document.createElement("option");o.value=s;o.textContent=s;$("source").append(o)}}catch(e){$("message").textContent=e.message}}
 let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
-if(token){$("token").value=token;load()}else showApp();
+if(token){$("token").value=token;loadSources();load()}else showApp();
 </script></body></html>
