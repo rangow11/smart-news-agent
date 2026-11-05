@@ -40,7 +40,7 @@ jobs:
         env:
           NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: gemma-4-26b-a4b-it
+          GEMINI_MODEL: gemini-3.1-flash-lite
           GEMINI_FALLBACK_MODELS: ${{ vars.GEMINI_FALLBACK_MODELS }}
           NEWS_SOURCES_JSON: ${{ vars.NEWS_SOURCES_JSON }}
         run: python -m smart_agent.worker
