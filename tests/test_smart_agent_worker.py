@@ -187,6 +187,7 @@ def test_validate_analysis_rejects_invalid_score_and_rumor_type() -> None:
         "news_track": "secondary",
         "category": CATEGORIES[0],
         "summary": "خلاصه",
+        "detailed_report": "گزارش تفصیلی",
         "importance": 101,
         "mission_relevance": 80,
         "freshness": 90,
@@ -203,8 +204,9 @@ def test_validate_analysis_rejects_invalid_score_and_rumor_type() -> None:
 def test_analysis_input_labels_article_as_untrusted_data() -> None:
     prompt = _analysis_input("عنوان", "متن خبر", "منبع")
     assert "داده غیرقابل اعتماد" in prompt
-    assert "آمار تجمیعی" in prompt
-    assert "موقعیت" in prompt
+    from smart_agent.worker import SYSTEM_PROMPT
+    assert "آمار تجمیعی" in SYSTEM_PROMPT
+    assert "موقعیت" in SYSTEM_PROMPT
     assert "<article>" in prompt
     assert "\n" in prompt
     assert "\\n" not in prompt
