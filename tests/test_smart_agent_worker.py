@@ -104,7 +104,7 @@ def test_gemini_model_chain_is_ordered_and_deduplicated(monkeypatch) -> None:
 
     monkeypatch.delenv("GEMINI_FALLBACK_MODELS", raising=False)
     monkeypatch.delenv("GEMINI_MODEL", raising=False)
-    assert _gemini_model_chain() == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.5-flash"]
+    assert _gemini_model_chain() == ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash", "gemini-3.8-flash"]
 
 
 
