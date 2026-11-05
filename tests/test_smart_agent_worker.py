@@ -1,5 +1,7 @@
 """Unit tests for the standalone cloud worker."""
 
+from datetime import UTC, datetime, timedelta
+from time import struct_time
 from io import BytesIO
 from urllib.error import HTTPError, URLError
 
@@ -9,6 +11,8 @@ from smart_agent.worker import (
     _should_try_next_gemini,
     canonicalize,
     configure_sources,
+    collection_window,
+    entry_published_at,
     gemini_analyze,
     report_exists,
     score,
@@ -196,3 +200,43 @@ def test_empty_news_sources_configuration_is_rejected(monkeypatch) -> None:
         assert "no feeds configured" in str(exc)
     else:
         raise AssertionError("An empty feed list must not look like a successful run")
+
+
+
+def test_entry_published_at_uses_published_or_updated_timestamp() -> None:
+    parsed = struct_time((2026, 11, 5, 10, 15, 0, 3, 309, 0))
+    assert entry_published_at({"published_parsed": parsed}) == datetime(2026, 11, 5, 10, 15, tzinfo=UTC)
+    assert entry_published_at({"updated_parsed": parsed}) == datetime(2026, 11, 5, 10, 15, tzinfo=UTC)
+    assert entry_published_at({"title": "No timestamp"}) is None
+
+
+def test_initial_collection_window_defaults_to_last_30_minutes(monkeypatch) -> None:
+    class Connection:
+        def execute(self, *_args):
+            class Result:
+                def fetchone(self):
+                    return None
+            return Result()
+
+    monkeypatch.delenv("INITIAL_LOOKBACK_MINUTES", raising=False)
+    now = datetime(2026, 11, 5, 10, 30, tzinfo=UTC)
+    start, end = collection_window(Connection(), now)
+    assert start == now - timedelta(minutes=30)
+    assert end == now
+
+
+def test_collection_window_uses_previous_success_with_overlap(monkeypatch) -> None:
+    previous = datetime(2026, 11, 5, 10, 0, tzinfo=UTC)
+
+    class Connection:
+        def execute(self, *_args):
+            class Result:
+                def fetchone(self):
+                    return (previous,)
+            return Result()
+
+    monkeypatch.setenv("WINDOW_OVERLAP_MINUTES", "5")
+    now = datetime(2026, 11, 5, 10, 30, tzinfo=UTC)
+    start, end = collection_window(Connection(), now)
+    assert start == previous - timedelta(minutes=5)
+    assert end == now
