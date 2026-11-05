@@ -45,7 +45,27 @@ a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wra
  </div>
  <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><button id="logout">خروج</button><span id="stats"></span></div>
 </section>
-<section id="overview" class="panel hidden"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>\n<div id="message" class="sub"></div><section id="reports"></section>
+<section id="overview" class="panel hidden"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>\n
+<section id="sources-panel" class="panel hidden">
+ <div class="row" style="justify-content:space-between"><h3>مدیریت منابع خبری</h3><button id="reloadSources">بازخوانی منابع</button></div>
+ <div class="controls">
+  <input id="newSourceName" placeholder="نام منبع">
+  <input id="newSourceUrl" type="url" placeholder="نشانی RSS یا Atom (HTTPS)">
+  <select id="newSourceLanguage"><option value="fa">فارسی</option><option value="en">انگلیسی</option><option value="ar">عربی</option><option value="he">عبری</option><option value="other">سایر</option></select>
+  <input id="newSourceRegion" placeholder="کشور / منطقه، مثل IR">
+  <label class="sub">کیفیت منبع (۰ تا ۱۰۰) <input id="newSourceQuality" type="number" min="0" max="100" value="70"></label>
+  <button id="addSource">تست و افزودن منبع</button>
+ </div>
+ <div class="sub" id="sourceMessage" style="margin:8px 0">فید هنگام افزودن آزمایش می‌شود. غیرفعال‌سازی منابع از اجرای بعدی اعمال خواهد شد.</div>
+ <div id="sourceList"></div>
+</section>
+<section id="notifications-panel" class="panel hidden">
+ <h3>اعلان خبرهای تازه</h3>
+ <div class="sub">اعلان موبایل از طریق ntfy حتی با بسته بودن داشبورد کار می‌کند؛ اعلان مرورگر فقط وقتی داشبورد باز است فعال می‌ماند.</div>
+ <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><span id="notificationState" class="sub"></span></div>
+ <div id="ntfyInfo" class="sub" style="margin-top:10px"></div>
+</section>
+<div id="message" class="sub"></div><section id="reports"></section>
 </main>
 <script>
 const categories=["شایعات","نقاط قوت و ضعف","تهدیدات و فرصت‌ها","مشکلات و صدمات","وضعیت نیروها و رقیب","سازمان‌های موازی","غیبت و فرار","خدمات شهری","وضعیت روحیه","سایر و پیشنهادات"];
@@ -54,7 +74,7 @@ for(const c of categories){const o=document.createElement("option");o.value=c;o.
 function auth(){return {Authorization:"Bearer "+token,"Content-Type":"application/json"}}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
 async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(r.status===401)throw Error("کلید دسترسی نامعتبر است");if(!r.ok)throw Error("خطا در ارتباط با سرویس ("+r.status+")");return r.json()}
-function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token);$("overview").classList.toggle("hidden",!token)}
+function showApp(){ $("login").classList.toggle("hidden",!!token);$("filters").classList.toggle("hidden",!token);$("overview").classList.toggle("hidden",!token);$("sources-panel").classList.toggle("hidden",!token);$("notifications-panel").classList.toggle("hidden",!token)}
 let reportOffset=0;const pageSize=50;
 async function load(append=false){if(!token)return;showApp();if(!append){reportOffset=0;$("reports").replaceChildren()}else{$("loadMore")?.remove()}
  $("message").textContent="در حال دریافت خبرها…";
@@ -72,7 +92,92 @@ async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status
 $("connect").onclick=()=>{token=$("token").value.trim();localStorage.setItem("sna_token",token);loadSources();load()};
 $("refresh").onclick=()=>load();$("logout").onclick=()=>{token="";localStorage.removeItem("sna_token");showApp();$("reports").replaceChildren()};
 for(const id of ["category","status","source","sort","min","max","dateFrom","dateTo"])$(id).onchange=()=>load();
-async function loadSources(){try{const data=await api("/api/filters");for(const s of data.sources){const o=document.createElement("option");o.value=s;o.textContent=s;$("source").append(o)}}catch(e){$("message").textContent=e.message}}
+
+function sourceHealth(s){
+ if(s.last_error)return '<span class="error">خطا: '+escapeHtml(s.last_error)+'</span>';
+ if(s.last_success_at)return 'آخرین دریافت موفق: '+new Date(s.last_success_at).toLocaleString('fa-IR');
+ return 'هنوز بررسی نشده';
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+async function loadSources(){
+ try{
+  const data=await api('/api/sources');
+  const selected=$('source').value;
+  $('source').replaceChildren(new Option('همه خبرگزاری‌ها',''));
+  for(const s of data.sources){const o=new Option(s.name,s.name);$('source').append(o)}
+  $('source').value=selected;
+  $('sourceList').replaceChildren();
+  for(const s of data.sources){
+   const card=el('div','card');const head=el('div','row');
+   const name=el('b','',s.name);const enabled=el('input','');enabled.type='checkbox';enabled.checked=s.enabled;
+   const active=el('label','sub','فعال');active.prepend(enabled);
+   head.append(name,active);
+   const fields=el('div','controls');
+   const nm=el('input','');nm.value=s.name;nm.placeholder='نام';
+   const url=el('input','');url.value=s.feed_url;url.placeholder='RSS URL';
+   const lang=el('select','');for(const [v,l] of [['fa','فارسی'],['en','انگلیسی'],['ar','عربی'],['he','عبری'],['other','سایر']])lang.add(new Option(l,v));lang.value=s.language||'other';
+   const region=el('input','');region.value=s.region||'';region.placeholder='منطقه';
+   const quality=el('input','');quality.type='number';quality.min='0';quality.max='100';quality.value=s.source_quality;
+   const save=el('button','','ذخیره تغییرات');
+   save.onclick=async()=>{try{await api('/api/sources/'+s.id,{method:'PATCH',body:JSON.stringify({name:nm.value,feed_url:url.value,language:lang.value,region:region.value,source_quality:Number(quality.value)})});$('sourceMessage').textContent='تغییرات منبع ذخیره شد.';await loadSources()}catch(e){$('sourceMessage').textContent=e.message}};
+   enabled.onchange=async()=>{try{await api('/api/sources/'+s.id,{method:'PATCH',body:JSON.stringify({enabled:enabled.checked})});$('sourceMessage').textContent='وضعیت منبع به‌روزرسانی شد.'}catch(e){enabled.checked=!enabled.checked;$('sourceMessage').textContent=e.message}};
+   fields.append(nm,url,lang,region,quality,save);
+   const status=el('div','sub');status.innerHTML=sourceHealth(s);
+   card.append(head,fields,status);$('sourceList').append(card);
+  }
+ }catch(e){$('sourceMessage').textContent=e.message}
+}
+async function addSource(){
+ $('sourceMessage').textContent='در حال آزمایش فید…';
+ try{
+  await api('/api/sources',{method:'POST',body:JSON.stringify({name:$('newSourceName').value,feed_url:$('newSourceUrl').value,language:$('newSourceLanguage').value,region:$('newSourceRegion').value,source_quality:Number($('newSourceQuality').value)})});
+  $('sourceMessage').textContent='منبع با موفقیت آزمایش و اضافه شد؛ در اجرای بعدی خبرها بررسی می‌شوند.';
+  $('newSourceName').value='';$('newSourceUrl').value='';await loadSources();
+ }catch(e){$('sourceMessage').textContent=e.message}
+}
+let notificationBaseline=null, notificationTimer=null;
+async function pollBrowserNotifications(){
+ if(!token||!('Notification' in window)||Notification.permission!=='granted')return;
+ try{
+  const p=new URLSearchParams({sort:'newest',limit:'20',offset:'0'});
+  const data=await api('/api/reports?'+p);
+  const latest=data.reports[0];
+  if(!latest)return;
+  const stamp=latest.fetched_at||latest.published_at;
+  if(!notificationBaseline){notificationBaseline=stamp;return}
+  const fresh=data.reports.filter(r=>(r.fetched_at||r.published_at)>notificationBaseline);
+  if(fresh.length){
+   const newest=fresh[0];new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
+   notificationBaseline=stamp;
+  }
+ }catch(e){console.warn('notification poll failed',e)}
+}
+async function setupNotifications(){
+ try{
+  if('Notification' in window){
+   const permission=await Notification.requestPermission();
+   $('notificationState').textContent=permission==='granted'?'اعلان مرورگر فعال شد.':'اجازه اعلان مرورگر داده نشد.';
+  }else $('notificationState').textContent='این مرورگر از اعلان بومی پشتیبانی نمی‌کند.';
+  let current=await api('/api/notifications');
+  if(!current.topic){
+   const bytes=new Uint8Array(18);crypto.getRandomValues(bytes);
+   const topic='smartnews_'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+   current=await api('/api/notifications',{method:'POST',body:JSON.stringify({topic})});
+  }
+  const url='https://ntfy.sh/'+current.topic;
+  $('ntfyInfo').replaceChildren(el('span','', 'موضوع اختصاصی اعلان: '+current.topic+' '));
+  const a=el('a','','باز کردن صفحه اشتراک ntfy');a.href=url;a.target='_blank';a.rel='noopener noreferrer';$('ntfyInfo').append(a);
+  const copy=el('button','','کپی موضوع');copy.onclick=()=>navigator.clipboard.writeText(current.topic);$('ntfyInfo').append(copy);
+  $('ntfyInfo').append(el('div','sub','برای اعلان روی موبایل، برنامه ntfy را نصب کنید و همین موضوع را در آن Subscribe کنید. عامل خبری پس از هر اجرای موفقِ دارای خبر تازه، یک اعلان خلاصه می‌فرستد.'));
+  if(notificationTimer)clearInterval(notificationTimer);
+  notificationBaseline=null;await pollBrowserNotifications();
+  notificationTimer=setInterval(pollBrowserNotifications,120000);
+ }catch(e){$('notificationState').textContent='خطا: '+e.message}
+}
+$('addSource').onclick=addSource;
+$('reloadSources').onclick=loadSources;
+$('enableNotifications').onclick=setupNotifications;
+
 let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
-if(token){$("token").value=token;loadSources();load()}else showApp();
+if(token){$("token").value=token;loadSources();load();}else showApp();
 </script></body></html>
