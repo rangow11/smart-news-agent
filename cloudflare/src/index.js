@@ -377,8 +377,8 @@ export default {
             AND (NULLIF(${status}, '') IS NULL OR review_status = ${status})
             AND (NULLIF(${source}, '') IS NULL OR source_name = ${source})
             AND total_score >= ${minScore} AND total_score <= ${maxScore}
-            AND (NULLIF(${dateFrom}, '') IS NULL OR published_at >= NULLIF(${dateFrom}, '')::date)
-            AND (NULLIF(${dateTo}, '') IS NULL OR published_at < (NULLIF(${dateTo}, '')::date + INTERVAL '1 day'))
+            AND (NULLIF(${dateFrom}, '') IS NULL OR published_at >= (NULLIF(${dateFrom}, '')::date::timestamp AT TIME ZONE 'Asia/Tehran'))
+            AND (NULLIF(${dateTo}, '') IS NULL OR published_at < ((NULLIF(${dateTo}, '')::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'Asia/Tehran'))
             AND (${hourSlot}::int IS NULL OR EXTRACT(HOUR FROM published_at AT TIME ZONE 'Asia/Tehran') = ${hourSlot})
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
                  OR summary ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%')
