@@ -15,7 +15,6 @@ from smart_agent.worker import (
     configure_sources,
     entry_published_at,
     gemini_analyze,
-    ntfy_title_header,
     process_feed,
     report_exists,
     score,
@@ -462,8 +461,9 @@ def test_ntfy_run_message_reports_omitted_items_when_oversized() -> None:
 
 def test_ntfy_title_header_is_rfc2047_encoded_for_urllib() -> None:
     import base64
+    import smart_agent.worker as worker
 
-    encoded = ntfy_title_header(10)
+    encoded = worker.ntfy_title_header(10)
     assert encoded.startswith("=?UTF-8?B?")
     assert encoded.endswith("?=")
     assert encoded.isascii()
