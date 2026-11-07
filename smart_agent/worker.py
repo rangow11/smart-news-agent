@@ -144,24 +144,33 @@ is_rumor باید true یا false باشد.
 
 # The approved-news profile is maintained in news_policy.json and shared by single/batch prompts.
 APPROVED_PROFILE = NEWS_POLICY.get("scoring", {}).get("organization_approved_reference_profile", {})
-APPROVED_PROFILE_PROMPT = (
-    "\n\nپروفایل اولویت‌بندی برگرفته از نمونه‌های خبر تأییدشده توسط سازمان (راهنمای شباهت، نه تأیید صحت):\n"
-    + "\n".join("- " + str(item) for item in APPROVED_PROFILE.get("positive_signals", []))
-    + "\n\nراهنمای امتیازدهی مرتبط بودن با مأموریت (mission_relevance):\n"
-    + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("mission_relevance", ""))
-    + "\nراهنمای اهمیت (importance):\n"
-    + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("importance", ""))
-    + "\nراهنمای تازگی (freshness):\n"
-    + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("freshness", ""))
-    + "\nراهنمای کیفیت منبع (source_quality):\n"
-    + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("source_quality", ""))
-    + "\nمواردی که نباید امتیاز را مصنوعی بالا ببرند:\n"
-    + "\n".join("- " + str(item) for item in APPROVED_PROFILE.get("anti_signals", []))
-    + "\nاین پروفایل فقط اولویت انتخاب را تنظیم می‌کند؛ شباهت به نمونه سازمانی به معنی تأیید مستقل خبر نیست. "
-      "خبر مهم اما تأییدنشده را با انتساب و عدم قطعیت روشن نگه دار. "
-      "خبر مرتبط را صرفاً به دلیل منبع ضعیف یا ناقص بودن متن حذف نکن؛ عدم قطعیت را بازتاب بده و امتیاز منبع را جدا نگه دار."
-)
-SYSTEM_PROMPT += APPROVED_PROFILE_PROMPT
+def _profile_section(title: str, value) -> str:
+    if isinstance(value, list):
+        return title + "\\n" + "\\n".join("- " + str(item) for item in value)
+    if isinstance(value, dict):
+        lines = [title]
+        for key, item in value.items():
+            if isinstance(item, list):
+                lines.append(str(key) + ": " + "، ".join(str(x) for x in item))
+            else:
+                lines.append(str(key) + ": " + str(item))
+        return "\\n".join(lines)
+    return title + "\\n" + str(value or "")
+
+
+_profile_parts = [
+    "پروفایل الگوی خبرهای تأییدشده توسط سازمان؛ این متن برای تشخیص شباهت محتوایی و اولویت‌بندی است:",
+    "الگوی محوری: " + str(APPROVED_PROFILE.get("central_pattern", "")),
+    _profile_section("ویژگی‌های مشترک مشاهده‌شده:", APPROVED_PROFILE.get("observed_common_patterns", [])),
+    _profile_section("محورهای پرتکرار موضوعی:", APPROVED_PROFILE.get("recurring_subject_clusters", [])),
+    _profile_section("قالب‌های رایج خبرهای منتخب:", APPROVED_PROFILE.get("typical_approved_news_forms", [])),
+    _profile_section("دلایل ارزش و انتخاب خبرها در الگوی سازمان:", APPROVED_PROFILE.get("approval_rationale", [])),
+    _profile_section("ابعاد اولویت‌بندی:", APPROVED_PROFILE.get("priority_dimensions", {})),
+    "نحوه برخورد با منابع: " + str(APPROVED_PROFILE.get("source_treatment", "")),
+    "دستور تطبیق خبر جدید: " + str(APPROVED_PROFILE.get("matching_instruction", "")),
+]
+APPROVED_PROFILE_PROMPT = "\\n\\n".join(part for part in _profile_parts if part and not part.endswith(": "))
+
 
 
 def _analysis_input(title: str, content: str, source: str) -> str:
