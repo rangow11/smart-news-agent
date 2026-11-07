@@ -778,7 +778,7 @@ def configure_sources(conn) -> None:
 
 
 def send_ntfy_digest(conn, run_started: datetime) -> None:
-    """Send a push notification only when this run contains high-priority reports (score >= 85)."""
+    """Send one detailed push notification for every newly stored report scoring >= 85."""
     row = conn.execute(
         "SELECT setting_value FROM agent_settings WHERE setting_key = %s",
         ("ntfy_topic",),
@@ -787,47 +787,32 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
     if not topic or not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", topic):
         return
     reports = conn.execute(
-        """SELECT title, source_name, url, total_score
-           FROM news_reports
-           WHERE fetched_at >= %s AND total_score >= 85
-           ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST
-           LIMIT 5""",
+        """SELECT id, title, content, source_name, url, published_at, total_score
+           FROM news_reports WHERE fetched_at >= %s AND total_score >= 85
+           ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST""",
         (run_started,),
     ).fetchall()
-    count_row = conn.execute(
-        "SELECT COUNT(*) FROM news_reports WHERE fetched_at >= %s AND total_score >= 85",
-        (run_started,),
-    ).fetchone()
-    count = count_row[0] if not isinstance(count_row, dict) else next(iter(count_row.values()))
-    if not count:
-        return
-    lines = [
-        f"{index}. {r['title']}\nمنبع: {r['source_name']} | امتیاز: {r['total_score']}\n{r['url']}"
-        for index, r in enumerate(reports, start=1)
-    ]
-    body = (
-        f"{count} خبر مهم با امتیاز ۸۵ یا بالاتر شناسایی شد. "
-        f"فهرست زیر حداکثر ۵ خبر برتر را نشان می‌دهد.\n\n"
-        + "\n\n".join(lines)
-    )
-    request = Request(
-        f"https://ntfy.sh/{quote(topic, safe='')}",
-        data=body.encode("utf-8"),
-        headers={
-            "Content-Type": "text/plain; charset=utf-8",
-            "Title": f"هشدار خبری مهم | {count} خبر",
-            "Priority": "high",
-            "Tags": "warning,rotating_light",
-            "Click": "https://smart-news-agent-dashboard.smartnews1.workers.dev",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=12) as response:  # noqa: S310
-            LOG.info("ntfy notification sent: HTTP %s", response.status)
-    except Exception as exc:
-        # Notification delivery must never roll back successfully collected news.
-        LOG.warning("ntfy notification failed: %s", str(exc)[:300])
+    dashboard = "https://smart-news-agent-dashboard.smartnews1.workers.dev"
+    for report in reports:
+        report_id = report["id"]
+        title = str(report["title"] or "خبر مهم")
+        published = report["published_at"]
+        published_text = published.astimezone(UTC).isoformat() if published else "زمان انتشار نامشخص"
+        content = str(report["content"] or "").strip() or "متن کامل خبر در صفحه اختصاصی داشبورد در دسترس است."
+        body = (f"{title}\n\nمنبع: {report['source_name']}\nامتیاز: {report['total_score']}\n"
+                f"زمان انتشار: {published_text}\nلینک منبع اصلی: {report['url']}\n\nمتن خبر:\n{content}")
+        request = Request(
+            f"https://ntfy.sh/{quote(topic, safe='')}", data=body.encode("utf-8"),
+            headers={"Content-Type":"text/plain; charset=utf-8","Title":title[:250],
+                     "Priority":"urgent","Tags":"warning,rotating_light",
+                     "Click":f"{dashboard}/?news_id={report_id}"},
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=15) as response:  # noqa: S310
+                LOG.info("ntfy report notification sent for report %s: HTTP %s", report_id, response.status)
+        except Exception as exc:
+            LOG.warning("ntfy notification failed for report %s: %s", report_id, str(exc)[:300])
 
 
 def main() -> int:
