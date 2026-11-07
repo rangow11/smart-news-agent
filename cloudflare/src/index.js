@@ -364,6 +364,7 @@ export default {
         const hourAfter = /^([0-9]|1[0-9]|2[0-3])$/.test(hourAfterRaw) ? Number(hourAfterRaw) : null;
         const reportIdRaw = url.searchParams.get("id") || "";
         const reportId = /^\d+$/.test(reportIdRaw) ? Number(reportIdRaw) : null;
+        const batchId = (url.searchParams.get("batch_id") || "").slice(0, 32);
         const sort = ["score", "newest", "combined"].includes(url.searchParams.get("sort"))
           ? url.searchParams.get("sort") : "combined";
         const requestedLimit = Number(url.searchParams.get("limit") || 50);
@@ -384,6 +385,8 @@ export default {
             AND (NULLIF(${dateTo}, '') IS NULL OR published_at < ((NULLIF(${dateTo}, '')::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'Asia/Tehran'))
             AND (${hourAfter}::int IS NULL OR EXTRACT(HOUR FROM published_at AT TIME ZONE 'Asia/Tehran') >= ${hourAfter})
             AND (${reportId}::bigint IS NULL OR id = ${reportId})
+            AND (${batchId} = '' OR id = ANY(COALESCE(
+                 (SELECT report_ids FROM news_notification_batches WHERE id = ${batchId}), '{}'::bigint[])))
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
                  OR summary ILIKE '%' || ${q} || '%' OR content ILIKE '%' || ${q} || '%'
                  OR detailed_report ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%'
