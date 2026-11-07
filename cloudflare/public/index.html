@@ -213,7 +213,7 @@ async function setupNotifications(){
   $('ntfyInfo').replaceChildren(el('span','', 'موضوع اختصاصی اعلان: '+current.topic+' '));
   const a=el('a','','باز کردن صفحه اشتراک ntfy');a.href=url;a.target='_blank';a.rel='noopener noreferrer';$('ntfyInfo').append(a);
   const copy=el('button','','کپی موضوع');copy.onclick=()=>navigator.clipboard.writeText(current.topic);$('ntfyInfo').append(copy);
-  $('ntfyInfo').append(el('div','sub','برای اعلان روی موبایل، برنامه ntfy را نصب کنید و همین موضوع را در آن Subscribe کنید. عامل خبری پس از هر اجرای موفقِ دارای خبر تازه، یک اعلان خلاصه می‌فرستد.'));
+  $('ntfyInfo').append(el('div','sub','برای اعلان روی موبایل، برنامه ntfy را نصب کنید و همین موضوع را Subscribe کنید. هر خبر تازه با امتیاز ۸۵ به بالا اعلان جداگانه دارد؛ لمس اعلان صفحه همان خبر را در داشبورد باز می‌کند.'));
   if(notificationTimer)clearInterval(notificationTimer);
   notificationTimer=null;startBrowserNotifications();
  }catch(e){$('notificationState').textContent='خطا: '+e.message}
