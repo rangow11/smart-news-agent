@@ -299,6 +299,7 @@ export default {
                  COUNT(*) FILTER (WHERE fetched_at >= NOW() - INTERVAL '24 hours')::int AS last_24h,
                  COUNT(*) FILTER (WHERE total_score >= 65)::int AS priority_65,
                  COUNT(*) FILTER (WHERE total_score >= 85)::int AS priority_85,
+                 COUNT(*) FILTER (WHERE total_score < 75)::int AS below_75,
                  COUNT(*) FILTER (WHERE is_rumor)::int AS rumors,
                  MAX(fetched_at) AS latest_report
           FROM news_reports
@@ -359,8 +360,10 @@ export default {
         const source = url.searchParams.get("source") || "";
         const dateFrom = url.searchParams.get("date_from") || "";
         const dateTo = url.searchParams.get("date_to") || "";
-        const hourSlotRaw = url.searchParams.get("hour_slot") || "";
-        const hourSlot = /^([0-9]|1[0-9]|2[0-3])$/.test(hourSlotRaw) ? Number(hourSlotRaw) : null;
+        const hourAfterRaw = url.searchParams.get("hour_after") || "";
+        const hourAfter = /^([0-9]|1[0-9]|2[0-3])$/.test(hourAfterRaw) ? Number(hourAfterRaw) : null;
+        const reportIdRaw = url.searchParams.get("id") || "";
+        const reportId = /^\d+$/.test(reportIdRaw) ? Number(reportIdRaw) : null;
         const sort = ["score", "newest", "combined"].includes(url.searchParams.get("sort"))
           ? url.searchParams.get("sort") : "combined";
         const requestedLimit = Number(url.searchParams.get("limit") || 50);
@@ -379,9 +382,12 @@ export default {
             AND total_score >= ${minScore} AND total_score <= ${maxScore}
             AND (NULLIF(${dateFrom}, '') IS NULL OR published_at >= (NULLIF(${dateFrom}, '')::date::timestamp AT TIME ZONE 'Asia/Tehran'))
             AND (NULLIF(${dateTo}, '') IS NULL OR published_at < ((NULLIF(${dateTo}, '')::date + INTERVAL '1 day')::timestamp AT TIME ZONE 'Asia/Tehran'))
-            AND (${hourSlot}::int IS NULL OR EXTRACT(HOUR FROM published_at AT TIME ZONE 'Asia/Tehran') = ${hourSlot})
+            AND (${hourAfter}::int IS NULL OR EXTRACT(HOUR FROM published_at AT TIME ZONE 'Asia/Tehran') >= ${hourAfter})
+            AND (${reportId}::bigint IS NULL OR id = ${reportId})
             AND (NULLIF(${q}, '') IS NULL OR title ILIKE '%' || ${q} || '%'
-                 OR summary ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%')
+                 OR summary ILIKE '%' || ${q} || '%' OR content ILIKE '%' || ${q} || '%'
+                 OR detailed_report ILIKE '%' || ${q} || '%' OR source_name ILIKE '%' || ${q} || '%'
+                 OR category ILIKE '%' || ${q} || '%')
           ORDER BY
             CASE WHEN ${sort} = 'newest' THEN published_at END DESC NULLS LAST,
             CASE WHEN ${sort} = 'score' THEN total_score END DESC NULLS LAST,
@@ -393,6 +399,19 @@ export default {
         const hasMore = rows.length > limit;
         const reports = hasMore ? rows.slice(0, limit) : rows;
         return json({ reports, count: reports.length, limit, offset, has_more: hasMore, statuses: STATUSES });
+      }
+
+      const reportDetailMatch = url.pathname.match(/^\/api\/reports\/(\d+)$/);
+      if (reportDetailMatch && request.method === "GET") {
+        const id = Number(reportDetailMatch[1]);
+        const rows = await sql`
+          SELECT id, source_name, title, url, published_at, fetched_at, content,
+                 category, news_track, summary, detailed_report, importance, mission_relevance, freshness,
+                 source_quality, total_score, is_rumor, ai_model, review_status, review_note, reviewed_at
+          FROM news_reports WHERE id = ${id} LIMIT 1
+        `;
+        if (!rows.length) return json({ error: "report_not_found" }, 404);
+        return json({ report: rows[0] });
       }
 
       const match = url.pathname.match(/^\/api\/reports\/(\d+)\/status$/);
