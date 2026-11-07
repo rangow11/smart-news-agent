@@ -457,3 +457,12 @@ def test_ntfy_run_message_reports_omitted_items_when_oversized() -> None:
     message = build_ntfy_run_message(reports)
     assert len(message.encode("utf-8")) <= 3800
     assert "خبر دیگر" in message
+
+
+def test_ntfy_title_header_is_rfc2047_encoded_for_urllib() -> None:
+    from email.header import Header
+
+    title = "۱۰ خبر مهم تازه | عامل خبری"
+    encoded = Header(title, "utf-8").encode()
+    assert encoded.startswith("=?utf-8?b?")
+    assert encoded.isascii()
