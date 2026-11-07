@@ -1,0 +1,90 @@
+name: Smart News Dashboard CI
+
+on:
+  push:
+    branches: [develop/news-agent-mvp]
+    paths:
+      - "cloudflare/**"
+      - "smart_agent/**"
+      - "tests/test_smart_agent_worker.py"
+      - ".github/workflows/dashboard-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "cloudflare/**"
+      - ".github/workflows/dashboard-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install
+      - name: Validate Cloudflare Worker bundle
+        run: npx wrangler deploy --dry-run
+  worker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install worker dependencies
+        run: python -m pip install "feedparser>=6,<7" "pytest>=8,<9"
+      - name: Compile worker and validate policy loading
+        run: |
+          python -m compileall -q smart_agent
+          python -c "from smart_agent.worker import ADDITIONAL_NEWS_SOURCES, CATEGORIES, NEWS_POLICY, SCORING_WEIGHTS, validate_analysis; assert len(CATEGORIES) == 10; assert NEWS_POLICY[\"primary_stream\"][\"daily_limit\"] is None; assert sum(SCORING_WEIGHTS.values()) == 100; assert len(ADDITIONAL_NEWS_SOURCES) >= 40; assert all(s.get(\"language\") in {\"fa\",\"en\",\"ar\",\"he\"} and s.get(\"region\") for s in ADDITIONAL_NEWS_SOURCES); validate_analysis({\"news_track\": \"main\", \"category\": CATEGORIES[-1], \"summary\": \"خلاصه با انتساب به منبع\", \"detailed_report\": \"گزارش تفصیلی با انتساب به منبع\", \"importance\": 90, \"mission_relevance\": 80, \"freshness\": 95, \"is_rumor\": False})"
+          python -m pytest -o addopts= -q --noconftest tests/test_smart_agent_worker.py
+
+  deploy-dashboard:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop/news-agent-mvp'
+    needs: [build, worker-smoke]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install
+      - name: Deploy dashboard to Cloudflare
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Configure GitHub Actions dispatch token on Worker
+        run: |
+          if [ -z "$GH_WORKFLOW_TOKEN" ]; then
+            echo "GH_WORKFLOW_TOKEN is not configured; token setup skipped."
+            exit 0
+          fi
+          printf '%s' "$GH_WORKFLOW_TOKEN" | npx wrangler secret put GITHUB_ACTIONS_TOKEN
+        env:
+          GH_WORKFLOW_TOKEN: ${{ secrets.GH_WORKFLOW_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

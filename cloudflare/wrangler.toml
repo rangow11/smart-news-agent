@@ -1,0 +1,10 @@
+name = "smart-news-agent-dashboard"
+main = "src/index.js"
+compatibility_date = "2026-11-05"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[triggers]
+crons = ["*/5 * * * *"]

@@ -1,0 +1,464 @@
+[
+  {
+    "name": "BBC Arabic",
+    "feed_url": "https://feeds.bbci.co.uk/arabic/rss.xml",
+    "source_quality": 85,
+    "language": "ar",
+    "region": "INT"
+  },
+  {
+    "name": "Al Jazeera Arabic",
+    "feed_url": "https://www.aljazeera.net/rss",
+    "source_quality": 80,
+    "language": "ar",
+    "region": "INT"
+  },
+  {
+    "name": "Ynet Hebrew",
+    "feed_url": "https://www.ynet.co.il/Integration/StoryRss2.xml",
+    "source_quality": 75,
+    "language": "he",
+    "region": "IL"
+  },
+  {
+    "name": "Maariv Hebrew",
+    "feed_url": "https://www.maariv.co.il/Rss/RssFeedsMivzakiChadashot",
+    "source_quality": 75,
+    "language": "he",
+    "region": "IL"
+  },
+  {
+    "name": "The Times of Israel (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Atimesofisrael.com&hl=en-US&gl=US&ceid=US:en",
+    "source_quality": 80,
+    "language": "en",
+    "region": "IL"
+  },
+  {
+    "name": "The Jerusalem Post Israel News",
+    "feed_url": "https://www.jpost.com/rss/rssfeedsisraelnews.aspx",
+    "source_quality": 75,
+    "language": "en",
+    "region": "IL"
+  },
+  {
+    "name": "Haaretz Israel News",
+    "feed_url": "https://www.haaretz.com/srv/israel-news-rss",
+    "source_quality": 80,
+    "language": "en",
+    "region": "IL"
+  },
+  {
+    "name": "Iran International",
+    "feed_url": "https://www.iranintl.com/feed",
+    "source_quality": 80,
+    "language": "en",
+    "region": "IR"
+  },
+  {
+    "name": "Axios Top Stories",
+    "feed_url": "https://api.axios.com/feed/top/",
+    "source_quality": 85,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "The New York Times - Middle East",
+    "feed_url": "https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml",
+    "source_quality": 90,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "IRIB News (National RSS)",
+    "feed_url": "https://www.irib-news.ir/fa/rss/allnews?",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "Fars News (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Afarsnews.ir&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "Channel 13 Israel (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3A13tv.co.il%2Fnews&hl=he&gl=IL&ceid=IL%3Ahe",
+    "source_quality": 70,
+    "language": "he",
+    "region": "IL"
+  },
+  {
+    "name": "Clash Report (Google News RSS aggregation)",
+    "feed_url": "https://news.google.com/rss/search?q=site%3Aclashreport.com&hl=en-US&gl=US&ceid=US%3Aen",
+    "source_quality": 70,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "شبکه استانی آذربایجان شرقی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IRIBTabriz",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی آذربایجان غربی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/UrmiaIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی اردبیل - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/ArdabilIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی اصفهان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IRIBnews_Esfahan",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی البرز - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/alborz_iribnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی ایلام - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IlamAkhbar",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی بوشهر - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/Boushehr_IRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی تهران - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/Ostan_Tehran",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی چهارمحال و بختیاری - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/newschbirib",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی خراسان جنوبی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IRIBnews_skh",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی خراسان رضوی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/khrIRIBNews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی خراسان شمالی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/KhabarAtrak",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی خوزستان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IRIBnews_Khouzestan",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "پایش استانی زنجان - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%D8%B2%D9%86%D8%AC%D8%A7%D9%86%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی سمنان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/News_SemnanIRIB",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی سیستان و بلوچستان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/IRIBnewsSB",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی فارس - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/FarsIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی قزوین - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/Qazvin_IRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی قم - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/QomIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی کردستان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/KurdIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "پایش استانی کرمان - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%DA%A9%D8%B1%D9%85%D8%A7%D9%86%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی کرمانشاه - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/KermanshahIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "پایش استانی کهگیلویه و بویراحمد - تجمیع Google News",
+    "feed_url": "https://news.google.com/rss/search?q=%22%DA%A9%D9%87%DA%AF%DB%8C%D9%84%D9%88%DB%8C%D9%87%20%D9%88%20%D8%A8%D9%88%DB%8C%D8%B1%D8%A7%D8%AD%D9%85%D8%AF%22%20%22%D8%AE%D8%A8%D8%B1%DA%AF%D8%B2%D8%A7%D8%B1%DB%8C%20%D8%B5%D8%AF%D8%A7%D9%88%D8%B3%DB%8C%D9%85%D8%A7%22&hl=fa&gl=IR&ceid=IR%3Afa",
+    "source_quality": 65,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی گلستان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/News_Golestan",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی گیلان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/tv_baran",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی لرستان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/iriblor",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی مازندران - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/MazandaranIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی مرکزی - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/MarkaziIRIB",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی هرمزگان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/KhabareKhalijeFars",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی همدان - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/HamedanIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "شبکه استانی یزد - خبرگزاری صداوسیما",
+    "feed_url": "https://t.me/s/YazdIRIBnews",
+    "source_quality": 75,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "Clash Report (Telegram)",
+    "feed_url": "https://t.me/s/ClashReport",
+    "source_quality": 50,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "Vahid Online (Telegram)",
+    "feed_url": "https://t.me/s/VahidOnline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "Vahid Headline (Telegram)",
+    "feed_url": "https://t.me/s/VahidHeadline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "VahidOOnline (Telegram)",
+    "feed_url": "https://t.me/s/VahidOOnline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "N12 / Channel 12 Israel (Telegram)",
+    "feed_url": "https://t.me/s/N12nws",
+    "source_quality": 50,
+    "language": "he",
+    "region": "IL"
+  },
+  {
+    "name": "آینه جنوب - اخبار بوشهر و جنوب",
+    "feed_url": "https://t.me/s/ayenejonoub",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "شبکه خبری خوزستان",
+    "feed_url": "https://t.me/s/khozkhabar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "خوزستان فوری",
+    "feed_url": "https://t.me/s/khuzestan_fouri",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "هرمزگان فوری",
+    "feed_url": "https://t.me/s/hormoz_fouri",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "اخبار هرمزگان",
+    "feed_url": "https://t.me/s/akhbare_hormozgan",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "جنوب ایران نیوز",
+    "feed_url": "https://t.me/s/jonoubirann",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "کانال خبری خلیج فارس (PGNews)",
+    "feed_url": "https://t.me/s/pgnews",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "عسلویه آنلاین",
+    "feed_url": "https://t.me/s/asaluyehonline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "آخرین خبر بوشهر",
+    "feed_url": "https://t.me/s/Bushehr_Akhbar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "بلوچستانی‌ها",
+    "feed_url": "https://t.me/s/balochestaniha1",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "WarFront Witness (Telegram)",
+    "feed_url": "https://t.me/s/wfwitness",
+    "source_quality": 50,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "چرک‌نویس مدیا (Telegram)",
+    "feed_url": "https://t.me/s/Rfrens",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "اخبار روز ایران (Telegram)",
+    "feed_url": "https://t.me/s/iranfnews",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "اخبار سپاه پاسداران (Telegram)",
+    "feed_url": "https://t.me/s/Sepah_lr",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "رصد اخبار | اخبار جنگ (Telegram)",
+    "feed_url": "https://t.me/s/rasadeakhbaar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "مجله خبری تلگرام (Telegram)",
+    "feed_url": "https://t.me/s/TelNews_Magazine",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  }
+]
