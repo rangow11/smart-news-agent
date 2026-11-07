@@ -60,10 +60,10 @@
   "scoring": {
     "status": "organization_reference_profile_v2",
     "weights": {
-      "importance": 35,
-      "mission_relevance": 35,
+      "importance": 40,
+      "mission_relevance": 40,
       "freshness": 20,
-      "source_quality": 10
+      "source_quality": 0
     },
     "source_quality_origin": "operator_configured",
     "diversity": "prefer less-used sources as a tie-breaker or ranking aid; do not override a clearly more important or fresher report",
