@@ -578,7 +578,7 @@ def extract_feed_text(entry) -> str:
 
 def parse_telegram_channel(url: str) -> list[dict]:
     """Read public Telegram channel previews as feed-like entries without a third-party API."""
-    request = Request(
+    request = Request(  # noqa: S310
         url,
         headers={"User-Agent": "Mozilla/5.0 (compatible; SmartNewsAgent/1.0)", "Accept": "text/html"},
     )
