@@ -85,6 +85,12 @@ CREATE INDEX IF NOT EXISTS idx_news_reports_score_time
     ON news_reports(total_score DESC, fetched_at DESC);
 CREATE INDEX IF NOT EXISTS idx_news_reports_published
     ON news_reports(published_at DESC);
+CREATE TABLE IF NOT EXISTS news_notification_batches (
+    id TEXT PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    report_ids BIGINT[] NOT NULL DEFAULT '{}',
+    report_count INTEGER NOT NULL DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS agent_state (
     state_key TEXT PRIMARY KEY,
     state_value TIMESTAMPTZ NOT NULL,
@@ -777,8 +783,46 @@ def configure_sources(conn) -> None:
     conn.commit()
 
 
+def _persian_notification_text(value: str, limit: int) -> str:
+    """Return a short Persian excerpt; never fall back to untranslated source text."""
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if not re.search(r"[\u0600-\u06FF]", text):
+        return ""
+    return text[:limit].rstrip(" ،؛:") + ("…" if len(text) > limit else "")
+
+
+def _utf8_prefix(value: str, max_bytes: int) -> str:
+    return value.encode("utf-8")[:max_bytes].decode("utf-8", errors="ignore")
+
+
+def build_ntfy_run_message(reports: list[dict], max_bytes: int = 3800) -> str:
+    """Build one compact, Persian-only notification for all high-priority news in a run."""
+    count = len(reports)
+    body = f"🔔 {count} خبر مهم تازه | امتیاز ۸۵ به بالا\n"
+    included = 0
+    for index, report in enumerate(reports, start=1):
+        headline = _persian_notification_text(report.get("summary"), 72)
+        if not headline:
+            headline = _persian_notification_text(report.get("title"), 72) or "تیتر فارسی در دسترس نیست"
+        excerpt = _persian_notification_text(report.get("detailed_report"), 78)
+        source = _persian_notification_text(report.get("source_name"), 22) or "منبع"
+        item = f"\n{index}) {headline}\n"
+        if excerpt and excerpt != headline:
+            item += f"{excerpt}\n"
+        item += f"منبع: {source} | امتیاز: {report.get('total_score', '—')}\n"
+        if len((body + item).encode("utf-8")) > max_bytes - 100:
+            break
+        body += item
+        included += 1
+    omitted = count - included
+    if omitted:
+        tail = f"\nو {omitted} خبر دیگر در صفحه همین اجرای داشبورد موجود است."
+        body = _utf8_prefix(body, max_bytes - len(tail.encode("utf-8"))) + tail
+    return _utf8_prefix(body, max_bytes)
+
+
 def send_ntfy_digest(conn, run_started: datetime) -> None:
-    """Send one detailed push notification for every newly stored report scoring >= 85."""
+    """Send one compact notification per run; tapping it opens all >=85 news from that run."""
     row = conn.execute(
         "SELECT setting_value FROM agent_settings WHERE setting_key = %s",
         ("ntfy_topic",),
@@ -787,32 +831,43 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
     if not topic or not re.fullmatch(r"[A-Za-z0-9_-]{8,64}", topic):
         return
     reports = conn.execute(
-        """SELECT id, title, content, source_name, url, published_at, total_score
+        """SELECT id, title, summary, detailed_report, source_name, published_at, total_score
            FROM news_reports WHERE fetched_at >= %s AND total_score >= 85
            ORDER BY total_score DESC NULLS LAST, published_at DESC NULLS LAST""",
         (run_started,),
     ).fetchall()
+    if not reports:
+        LOG.info("No new reports scored 85+; no ntfy notification sent")
+        return
+
+    batch_id = run_started.strftime("%Y%m%dT%H%M%S%fZ")
+    report_ids = [int(report["id"]) for report in reports]
+    conn.execute(
+        """INSERT INTO news_notification_batches (id, report_ids, report_count)
+           VALUES (%s, %s, %s)
+           ON CONFLICT (id) DO UPDATE
+           SET report_ids = EXCLUDED.report_ids, report_count = EXCLUDED.report_count""",
+        (batch_id, report_ids, len(report_ids)),
+    )
     dashboard = "https://smart-news-agent-dashboard.smartnews1.workers.dev"
-    for report in reports:
-        report_id = report["id"]
-        title = str(report["title"] or "خبر مهم")
-        published = report["published_at"]
-        published_text = published.astimezone(UTC).isoformat() if published else "زمان انتشار نامشخص"
-        content = str(report["content"] or "").strip() or "متن کامل خبر در صفحه اختصاصی داشبورد در دسترس است."
-        body = (f"{title}\n\nمنبع: {report['source_name']}\nامتیاز: {report['total_score']}\n"
-                f"زمان انتشار: {published_text}\nلینک منبع اصلی: {report['url']}\n\nمتن خبر:\n{content}")
-        request = Request(
-            f"https://ntfy.sh/{quote(topic, safe='')}", data=body.encode("utf-8"),
-            headers={"Content-Type":"text/plain; charset=utf-8","Title":title[:250],
-                     "Priority":"urgent","Tags":"warning,rotating_light",
-                     "Click":f"{dashboard}/?news_id={report_id}"},
-            method="POST",
-        )
-        try:
-            with urlopen(request, timeout=15) as response:  # noqa: S310
-                LOG.info("ntfy report notification sent for report %s: HTTP %s", report_id, response.status)
-        except Exception as exc:
-            LOG.warning("ntfy notification failed for report %s: %s", report_id, str(exc)[:300])
+    body = build_ntfy_run_message(reports)
+    request = Request(
+        f"https://ntfy.sh/{quote(topic, safe='')}",
+        data=body.encode("utf-8"),
+        headers={
+            "Content-Type": "text/plain; charset=utf-8",
+            "Title": f"{len(reports)} خبر مهم تازه | عامل خبری",
+            "Priority": "urgent",
+            "Tags": "newspaper,information_source",
+            "Click": f"{dashboard}/?batch_id={batch_id}",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=15) as response:  # noqa: S310
+            LOG.info("ntfy run digest sent: %s reports, batch %s, HTTP %s", len(reports), batch_id, response.status)
+    except Exception as exc:
+        LOG.warning("ntfy run digest failed for batch %s: %s", batch_id, str(exc)[:300])
 
 
 def main() -> int:
