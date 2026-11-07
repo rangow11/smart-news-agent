@@ -15,6 +15,7 @@ import socket
 import sys
 import time
 from datetime import UTC, datetime, timedelta
+from email.header import Header
 from html import unescape
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -859,7 +860,11 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
         data=body.encode("utf-8"),
         headers={
             "Content-Type": "text/plain; charset=utf-8",
-            "Title": f"{str(len(reports)).translate(str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹'))} خبر مهم تازه | عامل خبری",
+            # urllib encodes HTTP header values as latin-1; RFC 2047 keeps Persian title UTF-8 safe.
+            "Title": Header(
+                f"{str(len(reports)).translate(str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹'))} خبر مهم تازه | عامل خبری",
+                "utf-8",
+            ).encode(),
             "Priority": "urgent",
             "Tags": "newspaper,information_source",
             "Click": f"{dashboard}/?batch_id={batch_id}",
