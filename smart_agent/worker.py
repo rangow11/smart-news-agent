@@ -798,7 +798,9 @@ def _utf8_prefix(value: str, max_bytes: int) -> str:
 def build_ntfy_run_message(reports: list[dict], max_bytes: int = 3800) -> str:
     """Build one compact, Persian-only notification for all high-priority news in a run."""
     count = len(reports)
-    body = f"🔔 {count} خبر مهم تازه | امتیاز ۸۵ به بالا\n"
+    fa_digits = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
+    count_fa = str(count).translate(fa_digits)
+    body = f"🔔 {count_fa} خبر مهم تازه | امتیاز ۸۵ به بالا\n"
     included = 0
     for index, report in enumerate(reports, start=1):
         headline = _persian_notification_text(report.get("summary"), 72)
@@ -806,17 +808,18 @@ def build_ntfy_run_message(reports: list[dict], max_bytes: int = 3800) -> str:
             headline = _persian_notification_text(report.get("title"), 72) or "تیتر فارسی در دسترس نیست"
         excerpt = _persian_notification_text(report.get("detailed_report"), 78)
         source = _persian_notification_text(report.get("source_name"), 22) or "منبع"
-        item = f"\n{index}) {headline}\n"
+        item = f"\n{str(index).translate(fa_digits)}) {headline}\n"
         if excerpt and excerpt != headline:
             item += f"{excerpt}\n"
-        item += f"منبع: {source} | امتیاز: {report.get('total_score', '—')}\n"
+        score_fa = str(report.get("total_score", "—")).translate(fa_digits)
+        item += f"منبع: {source} | امتیاز: {score_fa}\n"
         if len((body + item).encode("utf-8")) > max_bytes - 100:
             break
         body += item
         included += 1
     omitted = count - included
     if omitted:
-        tail = f"\nو {omitted} خبر دیگر در صفحه همین اجرای داشبورد موجود است."
+        tail = f"\nو {str(omitted).translate(fa_digits)} خبر دیگر در صفحه همین اجرای داشبورد موجود است."
         body = _utf8_prefix(body, max_bytes - len(tail.encode("utf-8"))) + tail
     return _utf8_prefix(body, max_bytes)
 
@@ -856,7 +859,7 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
         data=body.encode("utf-8"),
         headers={
             "Content-Type": "text/plain; charset=utf-8",
-            "Title": f"{len(reports)} خبر مهم تازه | عامل خبری",
+            "Title": f"{str(len(reports)).translate(str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹'))} خبر مهم تازه | عامل خبری",
             "Priority": "urgent",
             "Tags": "newspaper,information_source",
             "Click": f"{dashboard}/?batch_id={batch_id}",
