@@ -145,19 +145,19 @@ is_rumor باید true یا false باشد.
 # The approved-news profile is maintained in news_policy.json and shared by single/batch prompts.
 APPROVED_PROFILE = NEWS_POLICY.get("scoring", {}).get("organization_approved_reference_profile", {})
 APPROVED_PROFILE_PROMPT = (
-    "\\n\\nپروفایل اولویت‌بندی برگرفته از نمونه‌های خبر تأییدشده توسط سازمان (راهنمای شباهت، نه تأیید صحت):\\n"
-    + "\\n".join("- " + str(item) for item in APPROVED_PROFILE.get("positive_signals", []))
-    + "\\n\\nراهنمای امتیازدهی مرتبط بودن با مأموریت (mission_relevance):\\n"
+    "\n\nپروفایل اولویت‌بندی برگرفته از نمونه‌های خبر تأییدشده توسط سازمان (راهنمای شباهت، نه تأیید صحت):\n"
+    + "\n".join("- " + str(item) for item in APPROVED_PROFILE.get("positive_signals", []))
+    + "\n\nراهنمای امتیازدهی مرتبط بودن با مأموریت (mission_relevance):\n"
     + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("mission_relevance", ""))
-    + "\\nراهنمای اهمیت (importance):\\n"
+    + "\nراهنمای اهمیت (importance):\n"
     + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("importance", ""))
-    + "\\nراهنمای تازگی (freshness):\\n"
+    + "\nراهنمای تازگی (freshness):\n"
     + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("freshness", ""))
-    + "\\nراهنمای کیفیت منبع (source_quality):\\n"
+    + "\nراهنمای کیفیت منبع (source_quality):\n"
     + str(APPROVED_PROFILE.get("scoring_guidance", {}).get("source_quality", ""))
-    + "\\nمواردی که نباید امتیاز را مصنوعی بالا ببرند:\\n"
-    + "\\n".join("- " + str(item) for item in APPROVED_PROFILE.get("anti_signals", []))
-    + "\\nاین پروفایل فقط اولویت انتخاب را تنظیم می‌کند؛ شباهت به نمونه سازمانی به معنی تأیید مستقل خبر نیست. "
+    + "\nمواردی که نباید امتیاز را مصنوعی بالا ببرند:\n"
+    + "\n".join("- " + str(item) for item in APPROVED_PROFILE.get("anti_signals", []))
+    + "\nاین پروفایل فقط اولویت انتخاب را تنظیم می‌کند؛ شباهت به نمونه سازمانی به معنی تأیید مستقل خبر نیست. "
       "خبر مهم اما تأییدنشده را با انتساب و عدم قطعیت روشن نگه دار. "
       "خبر مرتبط را صرفاً به دلیل منبع ضعیف یا ناقص بودن متن حذف نکن؛ عدم قطعیت را بازتاب بده و امتیاز منبع را جدا نگه دار."
 )
