@@ -146,7 +146,7 @@ is_rumor باید true یا false باشد.
 APPROVED_PROFILE = NEWS_POLICY.get("scoring", {}).get("organization_approved_reference_profile", {})
 def _profile_section(title: str, value) -> str:
     if isinstance(value, list):
-        return title + "\\n" + "\\n".join("- " + str(item) for item in value)
+        return title + "\n" + "\n".join("- " + str(item) for item in value)
     if isinstance(value, dict):
         lines = [title]
         for key, item in value.items():
@@ -154,8 +154,8 @@ def _profile_section(title: str, value) -> str:
                 lines.append(str(key) + ": " + "، ".join(str(x) for x in item))
             else:
                 lines.append(str(key) + ": " + str(item))
-        return "\\n".join(lines)
-    return title + "\\n" + str(value or "")
+        return "\n".join(lines)
+    return title + "\n" + str(value or "")
 
 
 _profile_parts = [
@@ -169,7 +169,7 @@ _profile_parts = [
     "نحوه برخورد با منابع: " + str(APPROVED_PROFILE.get("source_treatment", "")),
     "دستور تطبیق خبر جدید: " + str(APPROVED_PROFILE.get("matching_instruction", "")),
 ]
-APPROVED_PROFILE_PROMPT = "\\n\\n".join(part for part in _profile_parts if part and not part.endswith(": "))
+APPROVED_PROFILE_PROMPT = "\n\n".join(part for part in _profile_parts if part and not part.endswith(": "))
 
 
 
