@@ -313,5 +313,110 @@
     "source_quality": 75,
     "language": "fa",
     "region": "IR"
+  },
+  {
+    "name": "Clash Report (Telegram)",
+    "feed_url": "https://t.me/s/ClashReport",
+    "source_quality": 50,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "Vahid Online (Telegram)",
+    "feed_url": "https://t.me/s/VahidOnline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "Vahid Headline (Telegram)",
+    "feed_url": "https://t.me/s/VahidHeadline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "VahidOOnline (Telegram)",
+    "feed_url": "https://t.me/s/VahidOOnline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "N12 / Channel 12 Israel (Telegram)",
+    "feed_url": "https://t.me/s/N12nws",
+    "source_quality": 50,
+    "language": "he",
+    "region": "IL"
+  },
+  {
+    "name": "آینه جنوب - اخبار بوشهر و جنوب",
+    "feed_url": "https://t.me/s/ayenejonoub",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "شبکه خبری خوزستان",
+    "feed_url": "https://t.me/s/khozkhabar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "خوزستان فوری",
+    "feed_url": "https://t.me/s/khuzestan_fouri",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "هرمزگان فوری",
+    "feed_url": "https://t.me/s/hormoz_fouri",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "اخبار هرمزگان",
+    "feed_url": "https://t.me/s/akhbare_hormozgan",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "جنوب ایران نیوز",
+    "feed_url": "https://t.me/s/jonoubirann",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "کانال خبری خلیج فارس (PGNews)",
+    "feed_url": "https://t.me/s/pgnews",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "عسلویه آنلاین",
+    "feed_url": "https://t.me/s/asaluyehonline",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "آخرین خبر بوشهر",
+    "feed_url": "https://t.me/s/Bushehr_Akhbar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
+  },
+  {
+    "name": "بلوچستانی‌ها",
+    "feed_url": "https://t.me/s/balochestaniha1",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR-SOUTH"
   }
 ]
