@@ -418,5 +418,47 @@
     "source_quality": 50,
     "language": "fa",
     "region": "IR-SOUTH"
+  },
+  {
+    "name": "WarFront Witness (Telegram)",
+    "feed_url": "https://t.me/s/wfwitness",
+    "source_quality": 50,
+    "language": "en",
+    "region": "INT"
+  },
+  {
+    "name": "چرک‌نویس مدیا (Telegram)",
+    "feed_url": "https://t.me/s/Rfrens",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "اخبار روز ایران (Telegram)",
+    "feed_url": "https://t.me/s/iranfnews",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "اخبار سپاه پاسداران (Telegram)",
+    "feed_url": "https://t.me/s/Sepah_lr",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "رصد اخبار | اخبار جنگ (Telegram)",
+    "feed_url": "https://t.me/s/rasadeakhbaar",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
+  },
+  {
+    "name": "مجله خبری تلگرام (Telegram)",
+    "feed_url": "https://t.me/s/TelNews_Magazine",
+    "source_quality": 50,
+    "language": "fa",
+    "region": "IR"
   }
 ]
