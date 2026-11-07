@@ -428,3 +428,32 @@ def test_batch_response_validation_keeps_only_expected_valid_ids(monkeypatch) ->
     assert list(result) == ["a"]
     assert provider == "gemini"
     assert model == "gemma-4-26b-a4b-it"
+
+
+def test_ntfy_run_message_is_persian_compact_and_under_mobile_limit() -> None:
+    from smart_agent.worker import build_ntfy_run_message
+
+    reports = [
+        {"id": i, "title": f"English title {i}", "summary": f"تیتر فارسی خبر شماره {i}",
+         "detailed_report": "متن فارسی گزارش درباره تحولات مهم و تازه در منطقه.",
+         "source_name": "خبرگزاری نمونه", "total_score": 91}
+        for i in range(1, 11)
+    ]
+    message = build_ntfy_run_message(reports)
+    assert "۱۰ خبر مهم تازه" in message
+    assert "تیتر فارسی خبر شماره 1" in message
+    assert "English title" not in message
+    assert len(message.encode("utf-8")) <= 3800
+
+
+def test_ntfy_run_message_reports_omitted_items_when_oversized() -> None:
+    from smart_agent.worker import build_ntfy_run_message
+
+    reports = [
+        {"title": "English", "summary": f"تیتر فارسی {i}", "detailed_report": "شرح فارسی " * 1000,
+         "source_name": "منبع فارسی", "total_score": 90}
+        for i in range(100)
+    ]
+    message = build_ntfy_run_message(reports)
+    assert len(message.encode("utf-8")) <= 3800
+    assert "خبر دیگر" in message
