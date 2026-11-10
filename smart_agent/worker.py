@@ -431,7 +431,7 @@ def gemini_analyze_batch(items: list[dict], model: str | None = None) -> tuple[d
 
 
 def analyze_batch(items: list[dict]) -> tuple[dict[str, dict], str, str]:
-    """Analyze a batch once, falling back to other available Gemini/Gemma models on failure."""
+    """Retry transient failures with backoff, then fall back to other available Gemini models."""
     global _ACTIVE_GEMINI_MODEL
     chain = _gemini_model_chain()
     if _ACTIVE_GEMINI_MODEL in chain:
@@ -1032,7 +1032,7 @@ def main() -> int:
                 LOG.info("Batch %d/%d analyzed with %s/%s: %d valid results",
                          batch_index, len(batches), provider, model, len(results))
             except Exception:
-                LOG.exception("Analysis batch %d/%d failed; skipping %d news items without retry",
+                LOG.exception("Analysis batch %d/%d failed; deferring %d news items to the next run",
                               batch_index, len(batches), len(batch))
                 skipped_item_ids.update(item["id"] for item in batch)
                 continue
@@ -1041,7 +1041,7 @@ def main() -> int:
                 result = results.get(item["id"])
                 if not result:
                     skipped_item_ids.add(item["id"])
-                    LOG.warning("No valid AI result for %s; skipping it without a follow-up request", item["id"])
+                    LOG.warning("No valid AI result for %s; leaving it pending for the next run", item["id"])
                     continue
                 source = item["source"]
                 try:
@@ -1069,7 +1069,7 @@ def main() -> int:
                             inserted_by_source[source["id"]] = inserted_by_source.get(source["id"], 0) + 1
                 except Exception:
                     skipped_item_ids.add(item["id"])
-                    LOG.exception("Could not save analyzed news item %s; it will not be retried", item["id"])
+                    LOG.exception("Could not save analyzed news item %s; it remains pending for the next run", item["id"])
 
         # Advance source checkpoints only after all collected news has been persisted.
         pending_sources = pending_source_ids(candidates, skipped_item_ids)
@@ -1099,7 +1099,7 @@ def main() -> int:
 
         failed_sources = len(failed_source_errors)
         LOG.info(
-            "Run complete: %d new reports saved; %d/%d news items skipped (not retried); %d AI batch(es); %d/%d sources failed collection",
+            "Run complete: %d new reports saved; %d/%d news items deferred for retry; %d AI batch(es); %d/%d sources failed collection",
             inserted_total, len(skipped_item_ids), len(candidates), len(batches), failed_sources, len(sources),
         )
         if sources and failed_sources == len(sources):
