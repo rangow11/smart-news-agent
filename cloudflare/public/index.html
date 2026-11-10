@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827"><title>عامل خبری هوشمند</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#e8edf5;background:#0b1220;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#111c30,#0b1220 55%);min-height:100vh}
+header{position:sticky;top:0;background:#101a2bf2;border-bottom:1px solid #29364b;padding:14px 20px;z-index:5;backdrop-filter:blur(12px)}
+.tabs{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.tab{background:#17263b;border:1px solid #344760;color:#b9c8dc;padding:9px 18px}.tab.active,.view-mode.active{background:#27618e;border-color:#4a9bd1;color:#fff}.tab-hidden{display:none!important}.pager{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px}.page-indicator{color:#b6c4d7;font-size:13px}
+h1{font-size:20px;margin:0 0 6px}.sub{font-size:12px;color:#9aa9bf}
+main{max-width:1100px;margin:auto;padding:18px}
+.panel{background:#121e31;border:1px solid #293950;border-radius:14px;padding:14px;margin-bottom:14px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px}.stat{background:#0c1728;border:1px solid #293950;border-radius:10px;padding:12px}.stat b{display:block;font-size:21px;margin-bottom:5px}.stat span{font-size:12px;color:#9eb0c8}
+ .date-field{position:relative;display:flex;flex-direction:column;gap:6px;min-width:145px}.jalali-trigger{width:100%;text-align:right;background:#0c1728;border:1px solid #425873;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}.jalali-trigger:after{content:"▦";color:#8fcaff}.jalali-calendar{position:absolute;z-index:30;top:calc(100% + 7px);right:0;width:290px;padding:12px;background:#111e31;border:1px solid #52708f;border-radius:14px;box-shadow:0 18px 48px #0009;direction:rtl}.jalali-calendar.hidden{display:none}.jalali-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.jalali-head strong{font-size:14px;color:#f0f5fc}.jalali-nav{padding:6px 11px;min-width:34px;background:#1b3551}.jalali-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.jalali-weekday{font-size:11px;color:#91a8c2;padding:5px 0}.jalali-day{padding:8px 0;min-width:0;border-radius:8px;background:transparent;border:1px solid transparent;font-size:13px}.jalali-day:hover{background:#203e5d}.jalali-day.muted{color:#63758c;opacity:.5}.jalali-day.selected{background:#27618e;border-color:#65b5ed;color:white}.jalali-day.today{outline:1px solid #6cae88}.jalali-foot{display:flex;justify-content:space-between;margin-top:10px;padding-top:9px;border-top:1px solid #2a3c53}.jalali-foot button{font-size:12px;padding:6px 9px;background:#1b3551}.date-field{grid-column:span 1}
+input,select,button{font:inherit;border-radius:9px;border:1px solid #3a4b63;background:#0c1728;color:#e8edf5;padding:10px;min-width:0}
+button{cursor:pointer;background:#245a89;border-color:#3979ae}button:hover{filter:brightness(1.15)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row input{flex:1;min-width:190px}
+#stats{color:#aab9ce;font-size:13px;margin-top:10px}
+.card{background:#121e31;border:1px solid #2b3a50;border-radius:14px;padding:15px;margin:12px 0}
+.card h2{font-size:17px;line-height:1.8;margin:7px 0}.meta{color:#9eb0c8;font-size:12px;display:flex;gap:12px;flex-wrap:wrap}
+.summary{line-height:2;color:#dbe4f0;margin:9px 0}.detail-toggle{margin:8px 0;background:#1d4665}.detail-panel{white-space:pre-wrap;line-height:2;color:#dbe4f0;background:#0c1728;border:1px solid #293950;border-radius:10px;padding:13px;margin:8px 0}.detail-note{font-size:11px;color:#9aa9bf;margin:5px 0 10px}.badge{font-size:12px;border-radius:20px;padding:5px 9px;background:#253d58;display:inline-block}
+.badge.rumor{background:#633b27;color:#ffd2a8}.score{font-weight:bold;color:#9bd6ff}
+a{color:#82c7ff;text-decoration:none}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.actions button{font-size:12px;padding:8px 10px}.actions button.active{background:#23734d;border-color:#3ca875}
+.hidden{display:none}.error{color:#ff9e9e}.empty{text-align:center;color:#9eacc0;padding:35px}.load-more{display:block;width:100%;margin:14px 0;padding:12px}
+@media(max-width:600px){header{padding:13px}main{padding:12px}.card{padding:12px}.card h2{font-size:15px}}
+</style></head>
+<body>
+<header><h1>عامل خبری هوشمند</h1><div class="sub">مرکز رصد، اولویت‌بندی و بررسی خبرها</div><nav class="tabs"><button class="tab active" data-tab="news">اخبار</button><button class="tab" data-tab="sources">منابع خبری</button><button class="tab" data-tab="notifications">اعلان‌ها</button><button class="tab" data-tab="settings">تنظیمات</button></nav></header>
+<main>
+<section id="filters" class="panel">
+ <div class="row" style="margin-bottom:10px"><button id="todayView" class="view-mode active">اخبار امروز</button><button id="archiveView" class="view-mode">آرشیو / روزهای قبل</button><span id="viewHint" class="sub">نمایش اخبار روز جاری (به وقت تهران)</span></div>
+ <div class="controls">
+  <input id="q" placeholder="جست‌وجوی پیشرفته در عنوان، متن خبر، گزارش، منبع و دسته‌بندی">
+  <select id="searchScope" aria-label="محدوده جست‌وجو"><option value="latest">اخبار امروز (امتیاز ۷۵ به بالا)</option><option value="all">جست‌وجو در کل بانک خبری</option><option value="day">آرشیو روز / بازه انتخابی</option><option value="priority">همه خبرهای ۷۵ به بالا</option></select>
+  <select id="category"><option value="">همه دسته‌ها</option></select>
+  <select id="status"><option value="">همه وضعیت‌ها</option><option>جدید</option><option>انتخاب‌شده</option><option>ارسال‌شده</option><option>منتشرشده</option><option>ردشده</option><option>ذخیره‌شده برای بررسی</option></select>
+  <select id="source"><option value="">همه خبرگزاری‌ها</option></select>
+  <select id="sort"><option value="combined">ترکیبی: امتیاز + تازگی</option><option value="score">بالاترین امتیاز</option><option value="newest">جدیدترین خبرها</option></select>
+  <select id="min"><option value="75" selected>حداقل امتیاز: ۷۵</option><option value="85">۸۵ به بالا</option><option value="65">۶۵ به بالا</option><option value="50">۵۰ به بالا</option><option value="0">همه امتیازها</option></select>
+  <select id="max"><option value="100">حداکثر امتیاز: همه</option><option value="95">تا ۹۵</option><option value="90">تا ۹۰</option><option value="85">تا ۸۵</option><option value="80">تا ۸۰</option><option value="75">تا ۷۵</option><option value="70">تا ۷۰</option><option value="65">تا ۶۵</option><option value="50">تا ۵۰</option></select>
+  <div class="date-field"><span class="sub">از تاریخ</span><input id="dateFrom" type="hidden"><button type="button" class="jalali-trigger" data-calendar="dateFrom">انتخاب تاریخ</button><div class="jalali-calendar hidden" data-calendar-popup="dateFrom"></div></div>
+  <div class="date-field"><span class="sub">تا تاریخ</span><input id="dateTo" type="hidden"><button type="button" class="jalali-trigger" data-calendar="dateTo">انتخاب تاریخ</button><div class="jalali-calendar hidden" data-calendar-popup="dateTo"></div></div>
+  <select id="hourAfter" aria-label="فیلتر ساعت"><option value="">از همه ساعت‌ها</option></select>
+ </div>
+ <div class="row" style="margin-top:10px"><button id="refresh">به‌روزرسانی</button><span id="stats"></span></div>
+</section>
+<section id="overview" class="panel"><div class="stats-grid"><div class="stat"><b id="total">—</b><span>کل خبرهای ثبت‌شده</span></div><div class="stat"><b id="last24">—</b><span>خبرهای ۲۴ ساعت اخیر</span></div><div class="stat"><b id="priority65">—</b><span>امتیاز ۶۵ به بالا</span></div><div class="stat"><b id="priority85">—</b><span>امتیاز ۸۵ به بالا</span></div><div class="stat"><b id="below75">—</b><span>بایگانی کم‌اولویت (زیر ۷۵)</span></div><div class="stat"><b id="rumors">—</b><span>شایعه / ادعای تأییدنشده</span></div></div><div id="checkpoint" class="sub" style="margin-top:10px"></div><div id="breakdown" class="sub" style="margin-top:8px"></div></section>
+
+<section id="sources-panel" class="panel">
+ <div class="row" style="justify-content:space-between"><h3>مدیریت منابع خبری</h3><button id="reloadSources">بازخوانی منابع</button></div>
+ <div class="controls">
+  <input id="newSourceName" placeholder="نام منبع">
+  <input id="newSourceUrl" type="url" placeholder="نشانی RSS/Atom یا کانال عمومی تلگرام (t.me/s/...) — HTTPS">
+  <select id="newSourceLanguage"><option value="fa">فارسی</option><option value="en">انگلیسی</option><option value="ar">عربی</option><option value="he">عبری</option><option value="other">سایر</option></select>
+  <input id="newSourceRegion" placeholder="کشور / منطقه، مثل IR">
+  <label class="sub">کیفیت منبع (۰ تا ۱۰۰) <input id="newSourceQuality" type="number" min="0" max="100" value="70"></label>
+  <button id="addSource">تست و افزودن منبع</button>
+ </div>
+ <div class="sub" id="sourceMessage" style="margin:8px 0">فید RSS/Atom یا صفحه عمومی تلگرام هنگام افزودن آزمایش می‌شود. غیرفعال‌سازی منابع از اجرای بعدی اعمال خواهد شد.</div>
+ <div id="sourceList"></div>
+</section>
+<section id="notifications-panel" class="panel">
+ <h3>اعلان خبرهای تازه</h3>
+ <div class="sub">اعلان موبایل از طریق ntfy حتی با بسته بودن داشبورد کار می‌کند؛ اعلان مرورگر فقط وقتی داشبورد باز است فعال می‌ماند.</div>
+ <div class="row" style="margin-top:10px"><button id="enableNotifications">فعال‌سازی اعلان‌ها</button><button id="testNtfyNotification" style="background:#176b4b;border-color:#27966a">ارسال اعلان آزمایشی</button><span id="notificationState" class="sub"></span></div>
+ <div id="ntfyInfo" class="sub" style="margin-top:10px"></div>
+ <div class="sub" style="margin-top:8px">اعلان آزمایشی فقط برای بررسی اتصال است. اعلان خبر واقعی فقط برای خبرهای با امتیاز ۸۵ یا بالاتر ارسال می‌شود و شامل عنوان خبر، منبع، امتیاز و پیوند خبر خواهد بود.</div>
+</section>
+<section id="settings-panel" class="panel tab-hidden">
+ <h3>تنظیمات اجرای عامل خبری</h3>
+ <div class="sub">برنامه هوشمند پیش‌فرض: از ۶ تا ۱۴ هر نیم ساعت، از ۱۴ تا ۲۳ هر ساعت و از ۲۳ تا ۶ بدون اجرا. مقدار ۳۰ دقیقه همین برنامه را فعال می‌کند؛ هر مقدار دیگر، حالت آزمایشی با فاصله انتخابی را در بازه ۶ تا ۲۳ فعال می‌کند.</div>
+ <div class="row" style="margin-top:12px">
+  <label class="sub">فاصله آزمایشی (دقیقه؛ ۳۰ = برنامه هوشمند)
+   <input id="runIntervalMinutes" type="number" min="5" max="1440" step="5" value="30" style="width:130px">
+  </label>
+  <button id="saveRunSettings">ذخیره تنظیمات</button>
+ </div>
+ <div id="runSettingsMessage" class="sub" style="margin-top:10px">در حال دریافت تنظیمات…</div>
+</section>
+<div id="message" class="sub"></div><section id="reports"></section><div id="pager" class="pager"></div>
+</main>
+<script>
+const categories=["شایعات","نقاط قوت و ضعف","تهدیدات و فرصت‌ها","مشکلات و صدمات","وضعیت نیروها و رقیب","سازمان‌های موازی","غیبت و فرار","خدمات شهری","وضعیت روحیه","سایر و پیشنهادات"];
+const $=id=>document.getElementById(id);
+for(const c of categories){const o=document.createElement("option");o.value=c;o.textContent=c;$("category").append(o)}
+function auth(){return {"Content-Type":"application/json"}}
+function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{...auth(),...(options.headers||{})}});if(!r.ok){let data={};try{data=await r.json()}catch{}const messages={feed_url_must_be_public_https:"نشانی منبع باید HTTPS عمومی باشد.",feed_http_403:"منبع دسترسی RSS را مسدود کرد (403).",not_valid_rss_or_atom:"نشانی واردشده فید معتبر RSS یا Atom نیست.",feed_check_failed:"آزمایش فید ناموفق بود؛ اتصال یا نشانی منبع را بررسی کن.",invalid_source_fields:"نام، نشانی و امتیاز منبع را بررسی کن.",invalid_feed_url:"نشانی RSS معتبر نیست.",source_not_found:"منبع پیدا نشد."};throw Error(messages[data.error]||data.error||("خطا در ارتباط با سرویس ("+r.status+")"))}return r.json()}
+function showApp(){}
+let reportOffset=0;const pageSize=20;let currentPage=0;let currentHasMore=false;let archiveMode=false;
+function tehranDateISO(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tehran",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
+
+// تقویم شمسی سفارشی؛ مقدار داخلی همچنان ISO میلادی است تا API بدون تغییر بماند.
+const jalaliFmt=new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn",{year:"numeric",month:"numeric",day:"numeric"});
+const jalaliMonths=["فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور","مهر","آبان","آذر","دی","بهمن","اسفند"];
+const jalaliWeekdays=["ش","ی","د","س","چ","پ","ج"];
+function jalaliParts(date){const p={};for(const x of jalaliFmt.formatToParts(date))if(x.type!=="literal")p[x.type]=Number(x.value);return {year:p.year,month:p.month,day:p.day};}
+function isoDate(date){return date.getUTCFullYear()+"-"+String(date.getUTCMonth()+1).padStart(2,"0")+"-"+String(date.getUTCDate()).padStart(2,"0");}
+function parseISO(value){if(!value)return null;const [y,m,d]=value.split("-").map(Number);return new Date(Date.UTC(y,m-1,d,12));}
+function jalaliMonthStart(year,month){const from=Date.UTC(year+621,2,18,12),to=Date.UTC(year+622,2,23,12);for(let ts=from;ts<=to;ts+=86400000){const d=new Date(ts),p=jalaliParts(d);if(p.year===year&&p.month===month&&p.day===1)return d;}return null;}
+function monthMove(y,m,delta){let n=y*12+(m-1)+delta;return {year:Math.floor(n/12),month:((n%12)+12)%12+1};}
+function refreshDateButton(id){const input=$(id),button=document.querySelector('[data-calendar="'+id+'"]');button.textContent=input.value?(()=>{const p=jalaliParts(parseISO(input.value));return p.day+" "+jalaliMonths[p.month-1]+" "+p.year})():"انتخاب تاریخ";}
+function drawCalendar(id,year,month){const popup=document.querySelector('[data-calendar-popup="'+id+'"]');popup.replaceChildren();const selected=$(id).value;const today=tehranDateISO();const head=el("div","jalali-head");const prev=el("button","jalali-nav","‹"),next=el("button","jalali-nav","›");prev.type=next.type="button";const label=el("strong","",jalaliMonths[month-1]+" "+year);prev.onclick=()=>{const p=monthMove(year,month,-1);drawCalendar(id,p.year,p.month)};next.onclick=()=>{const p=monthMove(year,month,1);drawCalendar(id,p.year,p.month)};head.append(prev,label,next);popup.append(head);const grid=el("div","jalali-grid");for(const w of jalaliWeekdays)grid.append(el("div","jalali-weekday",w));const first=jalaliMonthStart(year,month);if(!first){popup.append(grid);return;}const offset=(first.getUTCDay()+1)%7;const start=new Date(first.getTime()-offset*86400000);for(let i=0;i<42;i++){const d=new Date(start.getTime()+i*86400000),p=jalaliParts(d),iso=isoDate(d);const b=el("button","jalali-day"+(p.month!==month?" muted":"")+(iso===selected?" selected":"")+(iso===today?" today":""),String(p.day));b.type="button";b.disabled=p.month!==month;b.setAttribute("aria-label",p.day+" "+jalaliMonths[p.month-1]+" "+p.year);b.onclick=()=>{ $(id).value=iso;refreshDateButton(id);popup.classList.add("hidden");$(id).dispatchEvent(new Event("change",{bubbles:true}));};grid.append(b);}popup.append(grid);const foot=el("div","jalali-foot");const clear=el("button","","پاک کردن"),todayBtn=el("button","","امروز");clear.type=todayBtn.type="button";clear.onclick=()=>{$(id).value="";refreshDateButton(id);popup.classList.add("hidden");$(id).dispatchEvent(new Event("change",{bubbles:true}));};todayBtn.onclick=()=>{$(id).value=today;refreshDateButton(id);popup.classList.add("hidden");$(id).dispatchEvent(new Event("change",{bubbles:true}));};foot.append(clear,todayBtn);popup.append(foot);}
+function openCalendar(id){const popup=document.querySelector('[data-calendar-popup="'+id+'"]');document.querySelectorAll(".jalali-calendar").forEach(x=>{if(x!==popup)x.classList.add("hidden")});if(!popup.classList.contains("hidden")){popup.classList.add("hidden");return;}const p=jalaliParts(parseISO($(id).value)||parseISO(tehranDateISO()));popup.classList.remove("hidden");drawCalendar(id,p.year,p.month);}
+document.querySelectorAll(".jalali-trigger").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openCalendar(b.dataset.calendar)}));
+document.addEventListener("click",e=>{if(!e.target.closest(".date-field"))document.querySelectorAll(".jalali-calendar").forEach(x=>x.classList.add("hidden"));});
+["dateFrom","dateTo"].forEach(refreshDateButton);
+
+function setNewsView(archive){archiveMode=archive;$("todayView").classList.toggle("active",!archive);$("archiveView").classList.toggle("active",archive);$("searchScope").value=archive?"day":"latest";$("min").value="75";$("viewHint").textContent=archive?"آرشیو: روز یا بازه زمانی را انتخاب کن.":"نمایش خبرهای امروز با امتیاز ۷۵ به بالا (به وقت تهران)";if(!archive){const today=tehranDateISO();$("dateFrom").value=today;$("dateTo").value=today;}else{$("dateFrom").value="";$("dateTo").value="";}refreshDateButton("dateFrom");refreshDateButton("dateTo");load();}
+$("todayView").onclick=()=>setNewsView(false);$("archiveView").onclick=()=>setNewsView(true);
+for(let hour=0;hour<24;hour++){const o=document.createElement("option");o.value=String(hour);o.textContent=String(hour).padStart(2,"0")+":۰۰ به بعد";$("hourAfter").append(o)}
+document.querySelectorAll("[data-tab]").forEach(t=>t.addEventListener("click",()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===t));for(const id of ["filters","overview","message","reports","pager"])$(id).classList.toggle("tab-hidden",t.dataset.tab!=="news");$("sources-panel").classList.toggle("tab-hidden",t.dataset.tab!=="sources");$("notifications-panel").classList.toggle("tab-hidden",t.dataset.tab!=="notifications");$("settings-panel").classList.toggle("tab-hidden",t.dataset.tab!=="settings")}));
+document.querySelector("[data-tab=news]").click();
+async function load(append=false){showApp();if(!append){currentPage=0;reportOffset=0;} $("reports").replaceChildren();
+ $("message").textContent="در حال دریافت خبرها…";
+ try{const today=tehranDateISO();const scope=$("searchScope").value;const deepLinkId=new URLSearchParams(location.search).get("news_id");const deepLinkBatch=new URLSearchParams(location.search).get("batch_id");const dateFrom=scope==="latest"?today:(scope==="day"?$("dateFrom").value:"");const dateTo=scope==="latest"?today:(scope==="day"?$("dateTo").value:"");let minScore=Number($("min").value||0);if(scope==="all")minScore=0;if(scope==="latest"||scope==="day"||scope==="priority")minScore=Math.max(75,minScore);const p=new URLSearchParams({q:$("q").value,category:$("category").value,status:$("status").value,source:$("source").value,min_score:String(minScore),max_score:$("max").value,sort:$("sort").value,date_from:dateFrom,date_to:dateTo,hour_after:$("hourAfter").value,limit:String(pageSize),offset:String(currentPage*pageSize)});if(deepLinkId){p.set("id",deepLinkId);p.set("min_score","0");p.set("date_from","");p.set("date_to","");}else if(deepLinkBatch){p.set("batch_id",deepLinkBatch);p.set("min_score","85");p.set("date_from","");p.set("date_to","");}const [data,overview]=await Promise.all([api("/api/reports?"+p),api("/api/stats")]);const n=v=>Number(v||0).toLocaleString("fa-IR");$("total").textContent=n(overview.totals.total);$("last24").textContent=n(overview.totals.last_24h);$("priority65").textContent=n(overview.totals.priority_65);$("priority85").textContent=n(overview.totals.priority_85);$("below75").textContent=n(overview.totals.below_75);$("rumors").textContent=n(overview.totals.rumors);$("checkpoint").textContent="آخرین اجرای موفق جمع‌آوری: "+(overview.last_successful_run?new Date(overview.last_successful_run).toLocaleString("fa-IR"):"ثبت نشده");$("breakdown").textContent="دسته‌ها: "+overview.categories.map(x=>(x.category||"بدون دسته")+" "+n(x.count)).join(" · ")+" | وضعیت‌ها: "+overview.statuses.map(x=>x.status+" "+n(x.count)).join(" · ");
+ reportOffset=data.count;currentHasMore=data.has_more;$("stats").textContent="نمایش "+n(data.count)+" خبر در این صفحه · "+(deepLinkBatch?"خبرهای مهمِ اجرای انتخاب‌شده":"مرتب‌سازی: "+$("sort").selectedOptions[0].textContent);$("message").textContent=deepLinkBatch?"تمام خبرهای مهم همان اجرا در این فهرست نمایش داده می‌شوند.":"";
+ if(!data.count){$("reports").append(el("div","panel empty","خبری در این بازه و با این فیلتر پیدا نشد."));$("pager").replaceChildren();return}
+ const grouped=[];for(const r of data.reports){const ts=new Date(r.published_at||r.fetched_at||0).getTime();let found=null;for(const g of grouped){const first=g.items[0],t0=new Date(first.published_at||first.fetched_at||0).getTime();if(first.source_name===r.source_name||Math.abs(ts-t0)>129600000)continue;const words=v=>new Set(String(v||"").toLocaleLowerCase("fa").replace(/[^\p{L}\p{N} ]/gu," ").split(/\s+/).filter(x=>x.length>2&&!["برای","های","این","درباره","اعلام","کرد","شد","است","از","به","در","با","the","and","for","with"].includes(x)));const A=words(first.title),B=words(r.title);let n=0;for(const x of A)if(B.has(x))n++;if(A.size&&B.size&&n/Math.min(A.size,B.size)>=0.58){found=g;break}}if(found)found.items.push(r);else grouped.push({items:[r]})}for(const group of grouped){const r=group.items[0];const card=el("article",group.items.length>1?"card duplicate-group":"card");const meta=el("div","meta");meta.append(el("span","badge",r.news_track==="main"?"خبر اصلی":"خبر تکمیلی"),el("span","badge",r.category||"بدون دسته"),el("span","badge",r.review_status||"جدید"),el("span","score","امتیاز "+(r.total_score??"—")),el("span","",r.source_name||"منبع نامشخص"));if(r.is_rumor)meta.append(el("span","badge rumor","شایعه / ادعای تأییدنشده"));
+ const title=el("h2","",r.title);const summary=el("p","summary",r.summary||"خلاصه‌ای ثبت نشده است.");const detailButton=el("button","detail-toggle","مشاهده گزارش تفصیلی فارسی");const detailPanel=el("div","detail-panel hidden",r.detailed_report||"گزارش تفصیلی برای این خبر ثبت نشده است.");const rawButton=el("button","detail-toggle","متن کامل خبر دریافت‌شده");const rawPanel=el("div","detail-panel hidden",r.content||"متن اصلی خبر در پایگاه داده ثبت نشده است.");rawButton.onclick=()=>{const opening=rawPanel.classList.contains("hidden");rawPanel.classList.toggle("hidden",!opening);rawButton.textContent=opening?"بستن متن کامل خبر":"متن کامل خبر دریافت‌شده"};const detailNote=null;detailButton.setAttribute("aria-expanded","false");detailButton.addEventListener("click",()=>{const opening=detailPanel.classList.contains("hidden");detailPanel.classList.toggle("hidden",!opening);detailButton.textContent=opening?"بستن گزارش تفصیلی":"مشاهده گزارش تفصیلی فارسی";detailButton.setAttribute("aria-expanded",String(opening))});const link=el("a","", "مشاهده گزارش منبع");try{const sourceUrl=new URL(r.url);if(!["http:","https:"].includes(sourceUrl.protocol))throw Error("invalid scheme");link.href=sourceUrl.href;link.target="_blank";link.rel="noopener noreferrer"}catch{link.textContent="پیوند منبع نامعتبر است";link.removeAttribute("href")}
+ const date=el("div","meta",r.published_at?new Date(r.published_at).toLocaleString("fa-IR"):"زمان انتشار نامشخص");
+ const actions=el("div","actions");for(const st of data.statuses){const b=el("button",st===r.review_status?"active":"",st);b.addEventListener("click",()=>updateStatus(r.id,st));actions.append(b)}
+ card.append(meta,title,summary,detailButton,detailPanel,rawButton,rawPanel,link,date,actions);if(group.items.length>1){card.append(el("div","duplicate-head",group.items.length+" خبر از منابع مختلف درباره یک رویداد شناسایی شد"));for(const other of group.items.slice(1)){const variant=el("details","variant");variant.append(el("summary","",other.source_name+" · "+other.title),el("p","summary",other.summary||"خلاصه ثبت نشده است."));const sourceLink=el("a","","مشاهده گزارش این منبع");try{sourceLink.href=new URL(other.url).href;sourceLink.target="_blank";sourceLink.rel="noopener noreferrer"}catch{sourceLink.textContent="پیوند نامعتبر"}variant.append(sourceLink);card.append(variant)}}$("reports").append(card)}
+ const pager=$("pager");pager.replaceChildren();const prev=el("button","","صفحه قبل");prev.disabled=currentPage===0;prev.onclick=()=>{currentPage--;load(true)};const next=el("button","","صفحه بعد");next.disabled=!currentHasMore;next.onclick=()=>{currentPage++;load(true)};pager.append(prev,el("span","page-indicator","صفحه "+(currentPage+1)),next);
+ }catch(e){$("message").className="error";$("message").textContent=e.message}}
+async function updateStatus(id,status){try{await api("/api/reports/"+id+"/status",{method:"PATCH",body:JSON.stringify({status})});await load()}catch(e){$("message").textContent=e.message}}
+$("refresh").onclick=()=>load();
+$("searchScope").onchange=()=>{const s=$("searchScope").value;archiveMode=s==="day"||s==="all"||s==="priority";$("todayView").classList.toggle("active",s==="latest");$("archiveView").classList.toggle("active",s==="day");if(s==="latest"){const t=tehranDateISO();$("dateFrom").value=t;$("dateTo").value=t;$("min").value="75";$("viewHint").textContent="نمایش خبرهای امروز با امتیاز ۷۵ به بالا.";}else if(s==="day"){$("min").value="75";$("viewHint").textContent="آرشیو روز یا بازه انتخابی؛ امتیاز ۷۵ به بالا.";}else if(s==="priority"){$("dateFrom").value="";$("dateTo").value="";$("min").value="75";$("viewHint").textContent="تمام خبرهای بانک با امتیاز ۷۵ به بالا.";}else{$("dateFrom").value="";$("dateTo").value="";$("min").value="0";$("viewHint").textContent="جست‌وجو در کل بانک خبری، شامل خبرهای کم‌امتیاز بایگانی‌شده.";}refreshDateButton("dateFrom");refreshDateButton("dateTo");load();};
+for(const id of ["category","status","source","sort","min","max","dateFrom","dateTo","hourAfter"])$(id).onchange=()=>{if(id==="dateFrom"||id==="dateTo"){archiveMode=true;$("searchScope").value="day";$("min").value="75";if(id==="dateFrom"&&$("dateFrom").value&&!$("dateTo").value)$("dateTo").value=$("dateFrom").value;if(id==="dateTo"&&$("dateTo").value&&!$("dateFrom").value)$("dateFrom").value=$("dateTo").value;$("todayView").classList.remove("active");$("archiveView").classList.add("active");$("viewHint").textContent="آرشیو: تاریخ انتخاب‌شده؛ خبرهای ۷۵ به بالا";}load();};
+
+function sourceHealth(s){
+ if(s.last_error)return '<span class="error">خطا: '+escapeHtml(s.last_error)+'</span>';
+ if(s.last_success_at)return 'آخرین دریافت موفق: '+new Date(s.last_success_at).toLocaleString('fa-IR');
+ return 'هنوز بررسی نشده';
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+async function loadSources(){
+ try{
+  const data=await api('/api/sources');
+  const selected=$('source').value;
+  $('source').replaceChildren(new Option('همه خبرگزاری‌ها',''));
+  for(const s of data.sources){const o=new Option(s.name,s.name);$('source').append(o)}
+  $('source').value=selected;
+  $('sourceList').replaceChildren();
+  for(const s of data.sources){
+   const card=el('div','card');const head=el('div','row');
+   const name=el('b','',s.name);const enabled=el('input','');enabled.type='checkbox';enabled.checked=s.enabled;
+   const active=el('label','sub','فعال');active.prepend(enabled);
+   head.append(name,active);
+   const fields=el('div','controls');
+   const nm=el('input','');nm.value=s.name;nm.placeholder='نام';
+   const url=el('input','');url.value=s.feed_url;url.placeholder='RSS URL';
+   const lang=el('select','');for(const [v,l] of [['fa','فارسی'],['en','انگلیسی'],['ar','عربی'],['he','عبری'],['other','سایر']])lang.add(new Option(l,v));lang.value=s.language||'other';
+   const region=el('input','');region.value=s.region||'';region.placeholder='منطقه';
+   const quality=el('input','');quality.type='number';quality.min='0';quality.max='100';quality.value=s.source_quality;
+   const save=el('button','','ذخیره تغییرات');
+   save.onclick=async()=>{try{await api('/api/sources/'+s.id,{method:'PATCH',body:JSON.stringify({name:nm.value,feed_url:url.value,language:lang.value,region:region.value,source_quality:Number(quality.value)})});$('sourceMessage').textContent='تغییرات منبع ذخیره شد.';await loadSources()}catch(e){$('sourceMessage').textContent=e.message}};
+   enabled.onchange=async()=>{try{await api('/api/sources/'+s.id,{method:'PATCH',body:JSON.stringify({enabled:enabled.checked})});$('sourceMessage').textContent='وضعیت منبع به‌روزرسانی شد.'}catch(e){enabled.checked=!enabled.checked;$('sourceMessage').textContent=e.message}};
+   fields.append(nm,url,lang,region,quality,save);
+   const status=el('div','sub');status.innerHTML=sourceHealth(s);
+   card.append(head,fields,status);$('sourceList').append(card);
+  }
+ }catch(e){$('sourceMessage').textContent=e.message}
+}
+async function addSource(){
+ $('sourceMessage').textContent='در حال آزمایش فید…';
+ try{
+  await api('/api/sources',{method:'POST',body:JSON.stringify({name:$('newSourceName').value,feed_url:$('newSourceUrl').value,language:$('newSourceLanguage').value,region:$('newSourceRegion').value,source_quality:Number($('newSourceQuality').value)})});
+  $('sourceMessage').textContent='منبع با موفقیت آزمایش و اضافه شد؛ در اجرای بعدی خبرها بررسی می‌شوند.';
+  $('newSourceName').value='';$('newSourceUrl').value='';await loadSources();
+ }catch(e){$('sourceMessage').textContent=e.message}
+}
+let notificationBaseline=null, notificationTimer=null;
+async function pollBrowserNotifications(){
+ if(!('Notification' in window)||Notification.permission!=='granted')return;
+ try{
+  const p=new URLSearchParams({sort:'newest',limit:'100',offset:'0'});
+  const data=await api('/api/reports?'+p);
+  if(!data.reports.length)return;
+  const stamps=data.reports.map(r=>r.fetched_at).filter(Boolean).sort();
+  const stamp=stamps[stamps.length-1]||data.reports[0].published_at;
+  if(!notificationBaseline){notificationBaseline=stamp;return}
+  const fresh=data.reports.filter(r=>(r.fetched_at||r.published_at)>notificationBaseline);
+  if(fresh.length){
+   const newest=fresh.reduce((a,b)=>(a.total_score||0)>=(b.total_score||0)?a:b);
+   const notice=new Notification('عامل خبری هوشمند | '+fresh.length+' خبر تازه',{body:newest.title,tag:'smart-news-'+newest.id});
+   notice.onclick=()=>{window.focus();notice.close()};
+   notificationBaseline=stamp;
+  }
+ }catch(e){console.warn('notification poll failed',e)}
+}
+function startBrowserNotifications(){
+ if(!('Notification' in window)||Notification.permission!=='granted'||notificationTimer)return;
+ notificationBaseline=null;pollBrowserNotifications();
+ notificationTimer=setInterval(pollBrowserNotifications,120000);
+}
+async function setupNotifications(){
+ try{
+  if('Notification' in window){
+   const permission=await Notification.requestPermission();
+   $('notificationState').textContent=permission==='granted'?'اعلان مرورگر فعال شد.':'اجازه اعلان مرورگر داده نشد.';
+  }else $('notificationState').textContent='این مرورگر از اعلان بومی پشتیبانی نمی‌کند.';
+  let current=await api('/api/notifications');
+  if(!current.topic){
+   const bytes=new Uint8Array(18);crypto.getRandomValues(bytes);
+   const topic='smartnews_'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+   current=await api('/api/notifications',{method:'POST',body:JSON.stringify({topic})});
+  }
+  const url='https://ntfy.sh/'+current.topic;
+  $('ntfyInfo').replaceChildren(el('span','', 'موضوع اختصاصی اعلان: '+current.topic+' '));
+  const a=el('a','','باز کردن صفحه اشتراک ntfy');a.href=url;a.target='_blank';a.rel='noopener noreferrer';$('ntfyInfo').append(a);
+  const copy=el('button','','کپی موضوع');copy.onclick=()=>navigator.clipboard.writeText(current.topic);$('ntfyInfo').append(copy);
+  $('ntfyInfo').append(el('div','sub','برای اعلان روی موبایل، برنامه ntfy را نصب کنید و همین موضوع را Subscribe کنید. هر خبر تازه با امتیاز ۸۵ به بالا اعلان جداگانه دارد؛ لمس اعلان صفحه همان خبر را در داشبورد باز می‌کند.'));
+  if(notificationTimer)clearInterval(notificationTimer);
+  notificationTimer=null;startBrowserNotifications();
+ }catch(e){$('notificationState').textContent='خطا: '+e.message}
+}
+$('addSource').onclick=addSource;
+$('reloadSources').onclick=loadSources;
+$('enableNotifications').onclick=setupNotifications;
+async function sendTestNtfyNotification(){
+ const button=$('testNtfyNotification');button.disabled=true;button.textContent='در حال ارسال…';
+ $('notificationState').textContent='در حال ارسال پیام آزمایشی به ntfy…';
+ try{
+  const result=await api('/api/notifications/test',{method:'POST',body:JSON.stringify({})});
+  $('notificationState').textContent=result.sent?'درخواست ارسال به ntfy موفق بود؛ دریافت روی گوشی را بررسی کن.':'ارسال تأیید نشد.';
+ }catch(e){
+  const messages={notification_topic_not_configured:'ابتدا «فعال‌سازی اعلان‌ها» را بزن تا موضوع ntfy ساخته شود.',notification_test_rate_limited:'برای جلوگیری از ارسال پشت‌سرهم، ۳۰ ثانیه صبر کن و دوباره تست بزن.'};
+  $('notificationState').textContent=messages[e.message]||('تست ناموفق بود: '+e.message);
+ }finally{button.disabled=false;button.textContent='ارسال اعلان آزمایشی'}
+}
+$('testNtfyNotification').onclick=sendTestNtfyNotification;
+async function loadRunSettings(){
+ try{
+  const data=await api('/api/settings');
+  $('runIntervalMinutes').value=data.run_interval_minutes||30;
+  const last=data.last_run_at?new Date(data.last_run_at).toLocaleString('fa-IR'):'هنوز اجرایی ثبت نشده';
+  $('runSettingsMessage').textContent=(data.run_interval_minutes===30?'حالت فعال: برنامه هوشمند روزانه':'حالت فعال: آزمایشی، هر '+data.run_interval_minutes+' دقیقه')+' · بررسی زمان‌بند: هر '+data.scheduler_tick_minutes+' دقیقه · آخرین شروع اجرا: '+last;
+ }catch(e){$('runSettingsMessage').textContent='خطا در دریافت تنظیمات: '+e.message}
+}
+async function saveRunSettings(){
+ const value=Number($('runIntervalMinutes').value);
+ if(!Number.isInteger(value)||value<5||value>1440||value%5!==0){
+  $('runSettingsMessage').textContent='عدد باید مضربی از ۵ و بین ۵ تا ۱۴۴۰ دقیقه باشد.';return;
+ }
+ try{
+  const data=await api('/api/settings',{method:'POST',body:JSON.stringify({run_interval_minutes:value})});
+  $('runSettingsMessage').textContent=data.run_interval_minutes===30?'برنامه هوشمند روزانه فعال شد.':'حالت آزمایشی فعال شد: هر '+data.run_interval_minutes+' دقیقه در بازه ۶ تا ۲۳.';
+ }catch(e){$('runSettingsMessage').textContent='خطا در ذخیره تنظیمات: '+e.message}
+}
+$('saveRunSettings').onclick=saveRunSettings;
+
+let timer; $("q").oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),350)};
+loadSources();setNewsView(false);loadRunSettings();startBrowserNotifications();
+</script></body></html>
