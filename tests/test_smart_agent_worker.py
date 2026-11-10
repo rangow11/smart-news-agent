@@ -469,3 +469,42 @@ def test_ntfy_title_header_is_rfc2047_encoded_for_urllib() -> None:
     assert encoded.isascii()
     decoded = base64.b64decode(encoded.removeprefix("=?UTF-8?B?").removesuffix("?=")).decode("utf-8")
     assert decoded == "۱۰ خبر مهم تازه | عامل خبری"
+
+def test_batch_analysis_retries_transient_503_with_exponential_backoff(monkeypatch) -> None:
+    import smart_agent.worker as worker
+
+    calls = []
+    delays = []
+    valid = {"news-1": {"summary": "خلاصه"}}
+
+    monkeypatch.setattr(worker, "_gemini_model_chain", lambda: ["test-model"])
+    monkeypatch.setattr(worker, "_ACTIVE_GEMINI_MODEL", None)
+    monkeypatch.setattr(worker.time, "sleep", delays.append)
+
+    def fake_batch(_items, model=None):
+        calls.append(model)
+        if len(calls) < 3:
+            raise HTTPError("https://example.com", 503, "temporarily unavailable", {}, BytesIO(b""))
+        return valid, "gemini", model
+
+    monkeypatch.setattr(worker, "gemini_analyze_batch", fake_batch)
+    results, provider, model = worker.analyze_batch([{"id": "news-1"}])
+
+    assert results == valid
+    assert provider == "gemini"
+    assert model == "test-model"
+    assert calls == ["test-model", "test-model", "test-model"]
+    assert delays == [2.0, 4.0]
+
+
+def test_pending_news_holds_all_associated_source_checkpoints() -> None:
+    from smart_agent.worker import pending_source_ids
+
+    candidates = [
+        {"id": "pending-1", "source": {"id": 1}, "source_ids": [1, 2]},
+        {"id": "saved-1", "source": {"id": 3}, "source_ids": [3]},
+        {"id": "pending-2", "source": {"id": 4}, "source_ids": [4]},
+    ]
+
+    assert pending_source_ids(candidates, {"pending-1", "pending-2"}) == {1, 2, 4}
+
