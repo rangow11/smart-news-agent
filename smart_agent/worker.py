@@ -257,7 +257,26 @@ def _should_try_next_gemini(exc: Exception) -> bool:
                 return False
             return any(token in detail for token in ("quota", "resource_exhausted", "rate limit"))
         return False
-    return isinstance(exc, (URLError, TimeoutError, ValueError, KeyError))
+    return isinstance(exc, (URLError, TimeoutError, socket.timeout, ValueError, KeyError))
+
+
+def _is_transient_gemini_error(exc: Exception) -> bool:
+    if isinstance(exc, HTTPError):
+        return exc.code in (429, 500, 502, 503, 504)
+    return isinstance(exc, (URLError, TimeoutError, socket.timeout))
+
+
+def _gemini_retry_delay(exc: Exception, attempt: int) -> float:
+    if isinstance(exc, HTTPError) and exc.headers:
+        retry_after = exc.headers.get("Retry-After")
+        if retry_after:
+            try:
+                return min(60.0, max(1.0, float(retry_after)))
+            except (TypeError, ValueError):
+                pass
+    base = max(1.0, float(os.getenv("GEMINI_RETRY_BASE_SECONDS", "2")))
+    maximum = max(base, float(os.getenv("GEMINI_RETRY_MAX_SECONDS", "30")))
+    return min(maximum, base * (2 ** attempt))
 
 
 # legacy branch removed
@@ -269,8 +288,9 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
     if _ACTIVE_GEMINI_MODEL in chain:
         chain = chain[chain.index(_ACTIVE_GEMINI_MODEL):]
     last_error: Exception | None = None
+    max_attempts = max(1, int(os.getenv("GEMINI_RETRY_ATTEMPTS", "3")))
     for index, model in enumerate(chain):
-        for attempt in range(2):
+        for attempt in range(max_attempts):
             try:
                 result, provider, actual_model = gemini_analyze(title, content, source, model=model)
                 result = validate_analysis(result)
@@ -280,13 +300,16 @@ def analyze(title: str, content: str, source: str) -> tuple[dict, str, str]:
                 return result, provider, actual_model
             except Exception as exc:
                 last_error = exc
-                if isinstance(exc, HTTPError) and exc.code in (500, 502, 503, 504) and attempt == 0:
-                    LOG.warning("Transient Gemini HTTP %s on %s; retrying once", exc.code, model)
-                    time.sleep(2)
+                if _is_transient_gemini_error(exc) and attempt + 1 < max_attempts:
+                    delay = _gemini_retry_delay(exc, attempt)
+                    LOG.warning("Transient Gemini error on %s (%s); retry %d/%d in %.1f seconds",
+                                model, type(exc).__name__, attempt + 1, max_attempts - 1, delay)
+                    time.sleep(delay)
                     continue
                 if not _should_try_next_gemini(exc) or index == len(chain) - 1:
                     raise
-                LOG.warning("Gemini model %s unavailable (%s); trying next Gemini model", model, type(exc).__name__)
+                LOG.warning("Gemini model %s unavailable after %d attempt(s) (%s); trying next Gemini model",
+                            model, attempt + 1, type(exc).__name__)
                 break
     if last_error:
         raise last_error
@@ -414,24 +437,44 @@ def analyze_batch(items: list[dict]) -> tuple[dict[str, dict], str, str]:
     if _ACTIVE_GEMINI_MODEL in chain:
         chain = chain[chain.index(_ACTIVE_GEMINI_MODEL):]
     last_error: Exception | None = None
+    max_attempts = max(1, int(os.getenv("GEMINI_RETRY_ATTEMPTS", "3")))
     for index, model in enumerate(chain):
-        try:
-            results, provider, actual_model = gemini_analyze_batch(items, model=model)
-            _ACTIVE_GEMINI_MODEL = model
-            if index:
-                LOG.warning("Batch analysis fallback model selected for this run: %s", model)
-            missing = len(items) - len(results)
-            if missing:
-                LOG.warning("Batch model %s returned %d/%d valid results; %d remain pending", model, len(results), len(items), missing)
-            return results, provider, actual_model
-        except Exception as exc:
-            last_error = exc
-            if not _should_try_next_gemini(exc) or index == len(chain) - 1:
-                raise
-            LOG.warning("Batch model %s unavailable (%s); trying next model without retrying the news batch", model, type(exc).__name__)
+        for attempt in range(max_attempts):
+            try:
+                results, provider, actual_model = gemini_analyze_batch(items, model=model)
+                _ACTIVE_GEMINI_MODEL = model
+                if index:
+                    LOG.warning("Batch analysis fallback model selected for this run: %s", model)
+                missing = len(items) - len(results)
+                if missing:
+                    LOG.warning("Batch model %s returned %d/%d valid results; %d remain pending", model, len(results), len(items), missing)
+                return results, provider, actual_model
+            except Exception as exc:
+                last_error = exc
+                if _is_transient_gemini_error(exc) and attempt + 1 < max_attempts:
+                    delay = _gemini_retry_delay(exc, attempt)
+                    LOG.warning("Transient Gemini batch error on %s (%s); retry %d/%d in %.1f seconds",
+                                model, type(exc).__name__, attempt + 1, max_attempts - 1, delay)
+                    time.sleep(delay)
+                    continue
+                if not _should_try_next_gemini(exc) or index == len(chain) - 1:
+                    raise
+                LOG.warning("Batch model %s unavailable after %d attempt(s) (%s); trying next model",
+                            model, attempt + 1, type(exc).__name__)
+                break
     if last_error:
         raise last_error
     raise RuntimeError("No batch analysis model is configured")
+
+
+def pending_source_ids(candidates: list[dict], skipped_item_ids: set[str]) -> set[int]:
+    """Hold source checkpoints while any collected item still needs AI processing."""
+    return {
+        int(source_id)
+        for item in candidates
+        if item["id"] in skipped_item_ids
+        for source_id in item.get("source_ids", [item["source"]["id"]])
+    }
 
 
 def collect_feed_entries(conn, source: dict, window_start: datetime, window_end: datetime) -> list[dict]:
@@ -861,6 +904,7 @@ def send_ntfy_digest(conn, run_started: datetime) -> None:
            SET report_ids = EXCLUDED.report_ids, report_count = EXCLUDED.report_count""",
         (batch_id, report_ids, len(report_ids)),
     )
+    conn.commit()  # Release the DB transaction before the ntfy network request.
     dashboard = "https://smart-news-agent-dashboard.smartnews1.workers.dev"
     body = build_ntfy_run_message(reports)
     request = Request(
@@ -968,6 +1012,8 @@ def main() -> int:
             "Collection complete: %d unseen unique news items from %d sources; %d bounded JSON batch(es)",
             len(candidates), len(sources), len(batches),
         )
+        # Close collection reads before long-running external Gemini requests.
+        conn.commit()
 
         inserted_total = 0
         inserted_by_source: dict[int, int] = {}
@@ -1025,7 +1071,8 @@ def main() -> int:
                     skipped_item_ids.add(item["id"])
                     LOG.exception("Could not save analyzed news item %s; it will not be retried", item["id"])
 
-        # Only feed collection failures hold back a source checkpoint. AI misses are final skips.
+        # Advance source checkpoints only after all collected news has been persisted.
+        pending_sources = pending_source_ids(candidates, skipped_item_ids)
         for source in sources:
             source_id = source["id"]
             if source_id in failed_source_errors:
@@ -1033,6 +1080,11 @@ def main() -> int:
                 conn.execute(
                     "UPDATE news_sources SET last_checked_at = NOW(), last_error = %s WHERE id = %s",
                     (error[:1000], source_id),
+                )
+            elif source_id in pending_sources:
+                conn.execute(
+                    "UPDATE news_sources SET last_checked_at = NOW(), last_error = %s WHERE id = %s",
+                    ("AI analysis pending; collected news will be retried on the next run", source_id),
                 )
             elif source_id in successful_source_ids:
                 conn.execute(
