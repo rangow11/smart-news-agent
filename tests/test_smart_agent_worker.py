@@ -7,9 +7,9 @@ from time import struct_time
 from urllib.error import HTTPError, URLError
 
 from smart_agent.worker import (
-    CATEGORIES,
     _analysis_input,
     _should_try_next_gemini,
+    CATEGORIES,
     canonicalize,
     collection_window,
     configure_sources,
@@ -461,6 +461,7 @@ def test_ntfy_run_message_reports_omitted_items_when_oversized() -> None:
 
 def test_ntfy_title_header_is_rfc2047_encoded_for_urllib() -> None:
     import base64
+
     import smart_agent.worker as worker
 
     encoded = worker.ntfy_title_header(10)
